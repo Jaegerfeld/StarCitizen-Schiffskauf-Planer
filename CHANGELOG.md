@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.1.0] – 2026-11-10
+
+### Hinzugefügt
+- **Schalter „Leihschiffe anzeigen“:** ergänzt beide Ansichten um Tagesmieten und Mietstationen, die Sortierung um „Miete/Tag“. Ausgeschaltet bleibt alles wie bisher.
+- **Merkliste:** Schiffe lassen sich auch zum Mieten vormerken. Kaufsumme und Miete pro Tag stehen getrennt, der Budget-Rest rechnet einen Tag Miete mit ein.
+
 ## [1.0.0] – 2026-11-10
 
 ### Hinzugefügt
