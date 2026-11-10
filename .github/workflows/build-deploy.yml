@@ -1,0 +1,50 @@
+name: Build & Deploy
+
+# Baut die App neu (frische UEX-Preise) und veröffentlicht sie
+# als Online-Version auf GitHub Pages: täglich per Zeitplan, bei Push auf
+# main und manuell. UEX wird so nur einmal am Tag abgefragt; der Knopf
+# in der App lädt den fertigen Stand (data.json) von Pages, nicht von UEX.
+on:
+  schedule:
+    - cron: "0 5 * * *"   # täglich 05:00 UTC
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Planer bauen (SC_Schiffskauf_Planer.html)
+        run: python schiffskauf_planer_bauen.py
+      - name: Pages-Verzeichnis vorbereiten
+        run: |
+          mkdir -p _site
+          cp SC_Schiffskauf_Planer.html _site/index.html
+          cp data.json _site/data.json
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
