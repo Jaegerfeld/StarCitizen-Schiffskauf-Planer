@@ -14,4 +14,4 @@
 """Single source of the SC Ship Purchase Planner's version number (SemVer)."""
 
 #: Current version of the tool, shown in the page header and the "What's new?" dialog.
-VERSION = "1.0.0"
+VERSION = "1.1.0"

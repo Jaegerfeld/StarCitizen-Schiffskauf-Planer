@@ -1,6 +1,6 @@
 # StarCitizen-Schiffskauf-Planer
 
-**Version 1.0.0** · 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
+**Version 1.1.0** · 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
 
 A ship purchase planner for *Star Citizen*: see **where each ship is cheapest** and **what is sold at
 your location**, then collect your picks on a wishlist with a budget.
@@ -17,6 +17,7 @@ The whole app is **one self-contained HTML file**: no install, no server. The in
 - **By location:** offers grouped by star system and location, compared to the cheapest place.
 - **Sort** by name, manufacturer, price, location, cargo, crew or length.
 - **Filter** by search, system, location, role, budget, manufacturer, type and minimum cargo.
+- **Rentals (optional):** a switch adds daily rental prices and rental stations to both views.
 - **Wishlist:** choose the buying location per ship and see buying stops, total and remaining budget.
 - **Daily data:** the online version is rebuilt every day. The in-app button loads that build's
   `data.json`, also from an offline copy.
@@ -31,7 +32,7 @@ Requires **Python 3.9+**, standard library only.
 
 ## Data sources & credits
 
-Purchase prices, vehicle data and terminals: [UEX](https://uexcorp.space) (public API). Prices are
+Purchase and rental prices, vehicle data and terminals: [UEX](https://uexcorp.space) (public API). Prices are
 community reports and can lag behind the game, so verify in game before buying.
 
 ## Disclaimer

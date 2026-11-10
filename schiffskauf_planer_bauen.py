@@ -10,8 +10,9 @@
 #   Baut den SC Schiffskauf-Planer: eine einzelne, offline lauffähige HTML-Seite,
 #   in der man ingame kaufbare Schiffe und Fahrzeuge nach Schiff oder nach
 #   Standort durchsucht, sortiert und auf einer Merkliste mit Budget sammelt.
-#   Quelle ist die öffentliche UEX-API (Kaufpreise je Terminal, Fahrzeug-
-#   stammdaten, Terminals, aktueller Spielstand).
+#   Per Schalter kommen Leihschiffe mit Tagespreisen dazu.
+#   Quelle ist die öffentliche UEX-API (Kauf- und Mietpreise je Terminal,
+#   Fahrzeugstammdaten, Terminals, aktueller Spielstand).
 #   Erzeugt im Skript-Ordner:
 #     SC_Schiffskauf_Planer.html  die App mit eingebetteten Daten
 #     data.json                   derselbe Datenstand; der Knopf „Neuesten Stand
@@ -48,8 +49,8 @@ CACHE = HERE / "uex_cache.json"
 #: Base URL of the UEX API.
 API = "https://api.uexcorp.space/2.0/"
 #: UEX endpoints the build needs.
-ENDPOINTS = ("vehicles_purchases_prices_all", "vehicles", "terminals", "companies",
-             "game_versions")
+ENDPOINTS = ("vehicles_purchases_prices_all", "vehicles_rentals_prices_all", "vehicles",
+             "terminals", "companies", "game_versions")
 #: Tool key in the shared header.
 TOOL = "schiffskauf"
 #: Published data.json the page loads on "Load latest build".
@@ -133,36 +134,65 @@ def location_record(term):
             "shop": " – ".join(parts[:-1]) or term["name"]}
 
 
-def ship_record(veh, offers, companies):
+def ship_record(veh, offers, rents, companies):
     """Convert a UEX vehicle and its offers into a ship record of the page.
 
     Args:
         veh: UEX vehicle dict.
         offers: List of ``[terminal id, price]``.
+        rents: List of ``[terminal id, price per day]``; may be empty.
         companies: Mapping of company id to company name.
 
     Returns:
-        Dict with id, name, manufacturer, ground flag, roles, cargo, crew, length and offers.
+        Dict with id, name, manufacturer, ground flag, roles, cargo, crew, length, purchase
+        offers (``p``) and rental offers (``q``).
     """
     return {"id": veh["id"], "n": veh["name_full"], "m": companies.get(veh["id_company"], ""),
             "g": 1 if veh.get("is_ground_vehicle") else 0,
             "r": [f for f in ROLE_FLAGS if veh.get("is_" + f)],
             "scu": veh.get("scu") or 0, "crew": parse_crew(veh.get("crew")),
             "len": veh.get("length") or None,
-            "p": sorted(offers, key=lambda o: o[1])}
+            "p": sorted(offers, key=lambda o: o[1]),
+            "q": sorted(rents, key=lambda o: o[1])}
+
+
+def collect_offers(rows, price_key, terminals, vehicles):
+    """Collect the priced offers of known terminals and vehicles.
+
+    Args:
+        rows: UEX price rows.
+        price_key: Name of the price field in a row.
+        terminals: Terminals that count, by id.
+        vehicles: Vehicles that count, by id.
+
+    Returns:
+        Tuple (offers by vehicle id, set of used terminal ids, list of report timestamps).
+    """
+    offers, used, dates = {}, set(), []
+    for row in rows:
+        tid, vid = row["id_terminal"], row["id_vehicle"]
+        if tid in terminals and vid in vehicles and row.get(price_key):
+            offers.setdefault(vid, []).append([tid, row[price_key]])
+            used.add(tid)
+            dates.append(row["date_modified"])
+    return offers, used, dates
 
 
 def build_data(raw):
     """Build the compact data object embedded in the page and written to data.json.
 
     Only terminals marked as available in the live game count; a vehicle without any
-    remaining offer is left out.
+    remaining purchase offer is left out, also if it could be rented. The page tells
+    purchase and rental offers apart by their terminal, so a rental row at a terminal
+    that also sells ships is skipped. Rental locations go into their own key ``rlocs``,
+    which keeps data.json readable for offline copies of version 1.0.
 
     Args:
         raw: Dict from load_raw().
 
     Returns:
-        Dict with schema, version, patch, build time, report date range, locs and ships.
+        Dict with schema, version, patch, build time, report date ranges, locs, rlocs and
+        ships.
 
     Raises:
         ValueError: If UEX delivered fewer price rows than plausible.
@@ -173,17 +203,20 @@ def build_data(raw):
     terminals = {t["id"]: t for t in raw["terminals"] if t.get("is_available_live")}
     vehicles = {v["id"]: v for v in raw["vehicles"]}
     companies = {c["id"]: c["name"] for c in raw["companies"]}
-    offers, used, dates = {}, set(), []
-    for row in prices:
-        tid, vid = row["id_terminal"], row["id_vehicle"]
-        if tid in terminals and vid in vehicles and row.get("price_buy"):
-            offers.setdefault(vid, []).append([tid, row["price_buy"]])
-            used.add(tid)
-            dates.append(row["date_modified"])
-    locs = sorted((location_record(terminals[t]) for t in used),
-                  key=lambda x: (x["sys"], x["place"], x["shop"]))
-    ships = sorted((ship_record(vehicles[v], o, companies) for v, o in offers.items()),
-                   key=lambda s: s["n"])
+    offers, used, dates = collect_offers(prices, "price_buy", terminals, vehicles)
+    rents, rent_used, rent_dates = collect_offers(
+        raw["vehicles_rentals_prices_all"], "price_rent",
+        {k: v for k, v in terminals.items() if k not in used},
+        {v: vehicles[v] for v in offers})
+
+    def place_key(x):
+        """Sort key for location records."""
+        return (x["sys"], x["place"], x["shop"])
+
+    locs = sorted((location_record(terminals[t]) for t in used), key=place_key)
+    rlocs = sorted(({**location_record(terminals[t]), "r": 1} for t in rent_used), key=place_key)
+    ships = sorted((ship_record(vehicles[v], o, rents.get(v, []), companies)
+                    for v, o in offers.items()), key=lambda s: s["n"])
 
     def day(ts):
         """Format a UNIX timestamp as an ISO date."""
@@ -191,7 +224,10 @@ def build_data(raw):
 
     return {"schema": 1, "version": VERSION, "patch": raw["game_versions"].get("live", ""),
             "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-            "from": day(min(dates)), "to": day(max(dates)), "locs": locs, "ships": ships}
+            "from": day(min(dates)), "to": day(max(dates)),
+            "rfrom": day(min(rent_dates)) if rent_dates else "",
+            "rto": day(max(rent_dates)) if rent_dates else "",
+            "locs": locs, "rlocs": rlocs, "ships": ships}
 
 
 def bilingual(html):
@@ -257,6 +293,8 @@ def main(argv):
     print(f"Geschrieben: {OUT_HTML.name} ({OUT_HTML.stat().st_size // 1024} KB), {OUT_JSON.name}")
     print(f"  {len(data['ships'])} Fahrzeuge, {len(data['locs'])} Standorte, "
           f"Spielstand {data['patch']}, Preise gemeldet {data['from']} bis {data['to']}.")
+    print(f"  {sum(len(s['q']) for s in data['ships'])} Mietangebote an "
+          f"{len(data['rlocs'])} Mietstationen.")
     return 0
 
 
@@ -281,6 +319,8 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   .filters{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end;margin:14px 0 6px}
   .f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted);min-width:130px}
   .f.grow{flex:1 1 220px}
+  .chk{display:inline-flex;align-items:center;gap:8px;min-height:36px;font-size:14px;cursor:pointer}
+  .rtag{display:inline-block;font-size:11.5px;font-weight:700;color:var(--accent2);border:1px solid var(--accent2);border-radius:6px;padding:0 6px;white-space:nowrap}
   .f input,.f select{width:100%}
   details.more{margin:0 0 6px}
   details.more>summary{cursor:pointer;font-family:var(--disp);font-weight:600;color:var(--accent2);min-height:32px;display:inline-flex;align-items:center}
@@ -351,6 +391,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       <label class="f">{{Budget max. (aUEC)|Max. budget (aUEC)}}<input type="text" inputmode="decimal" id="budget" autocomplete="off"></label>
       <label class="f">{{Sortieren nach|Sort by}}<select id="sort"></select></label>
       <button class="btn" id="dirBtn" type="button"></button>
+      <label class="chk"><input type="checkbox" id="rent">{{Leihschiffe anzeigen|Show rentals}}</label>
     </div>
     <details class="more"><summary>{{Weitere Filter|More filters}}</summary>
       <div class="filters">
@@ -385,14 +426,14 @@ const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 
 const I18N = {
   de:{all:'Alle',allSys:'Alle Systeme',allLoc:'Alle Standorte',allRole:'Alle Rollen',allMan:'Alle Hersteller',allType:'Schiffe und Fahrzeuge',space:'Nur Raumschiffe',ground:'Nur Bodenfahrzeuge',
-    name:'Name',man:'Hersteller',price:'Preis',loc:'Standort',scu:'Fracht (SCU)',crew:'Crew',len:'Länge (m)',ship:'Schiff',here:'Preis hier',cmp:'Vergleich',asc:'↑ Aufsteigend',desc:'↓ Absteigend',
+    rent:'Miete/Tag',perDay:' /Tag',rentTag:'Miete',more:n=>`+${n} weitere`,totalBuy:'Summe Kauf',rentSum:'Miete pro Tag',restRent:'Bleibt übrig (inkl. 1 Tag Miete)',missingRent:'Fehlt (inkl. 1 Tag Miete)',rentStat:d=>` · ${d.rlocs.length} Mietstationen, Miete gemeldet ${d.rfrom} bis ${d.rto}`,name:'Name',man:'Hersteller',price:'Preis',loc:'Standort',scu:'Fracht (SCU)',crew:'Crew',len:'Länge (m)',ship:'Schiff',here:'Preis hier',cmp:'Vergleich',asc:'↑ Aufsteigend',desc:'↓ Absteigend',
     hits:n=>`${n} ${n===1?'Treffer':'Treffer'}`,hitsLoc:(n,l)=>`${n} Angebote an ${l} ${l===1?'Standort':'Standorten'}`,offers:n=>`${n} ${n===1?'Schiff':'Schiffe'}`,from:'ab',cheapest:'günstigster Ort',only:'nur hier',also:'Auch:',
     save:'Merken',saved:'Gemerkt ✓',none:'Keine Schiffe passen zu diesen Filtern.',wishEmpty:'Noch nichts gemerkt. Klicke in der Liste bei einem Schiff auf „Merken“. Hier siehst du dann Summe, Budget und deine Kaufstopps.',
     remove:'Entfernen',total:'Summe',stops:'Kaufstopps',budget:'Budget',rest:'Bleibt übrig',missing:'Fehlt',oneStop:(l,d)=>`Alles auch in ${l} erhältlich${d>0?`, ${money(d)} teurer als die günstigste Verteilung`:''}.`,useOne:'Alles dort kaufen',cheapAll:'Alle auf günstigsten Ort setzen',clear:'Liste leeren',clearAsk:'Merkliste wirklich leeren?',
     search:'Schiff oder Hersteller',budgetPh:'z. B. 5m oder 2.500.000',stat:d=>`${d.ships.length} Fahrzeuge · ${d.locs.length} Standorte · Spielstand ${d.patch} · Preise gemeldet ${d.from} bis ${d.to} · gebaut ${d.generated}`,busy:'Lädt …',loaded:'Stand geladen:',failed:'Laden fehlgeschlagen. Die eingebauten Daten bleiben aktiv.',
     roles:{starter:'Starter',cargo:'Fracht',mining:'Bergbau',salvage:'Bergung',medical:'Medizin',repair:'Reparatur',refuel:'Betankung',exploration:'Erkundung',science:'Forschung',passenger:'Passagiere',racing:'Rennen',military:'Militär',stealth:'Tarnung',bomber:'Bomber',interdiction:'Abfangen',construction:'Bau'}},
   en:{all:'All',allSys:'All systems',allLoc:'All locations',allRole:'All roles',allMan:'All manufacturers',allType:'Ships and vehicles',space:'Spaceships only',ground:'Ground vehicles only',
-    name:'Name',man:'Manufacturer',price:'Price',loc:'Location',scu:'Cargo (SCU)',crew:'Crew',len:'Length (m)',ship:'Ship',here:'Price here',cmp:'Comparison',asc:'↑ Ascending',desc:'↓ Descending',
+    rent:'Rent/day',perDay:' /day',rentTag:'Rental',more:n=>`+${n} more`,totalBuy:'Purchase total',rentSum:'Rent per day',restRent:'Left over (incl. 1 day of rent)',missingRent:'Short by (incl. 1 day of rent)',rentStat:d=>` · ${d.rlocs.length} rental stations, rent reported ${d.rfrom} to ${d.rto}`,name:'Name',man:'Manufacturer',price:'Price',loc:'Location',scu:'Cargo (SCU)',crew:'Crew',len:'Length (m)',ship:'Ship',here:'Price here',cmp:'Comparison',asc:'↑ Ascending',desc:'↓ Descending',
     hits:n=>`${n} ${n===1?'result':'results'}`,hitsLoc:(n,l)=>`${n} offers at ${l} ${l===1?'location':'locations'}`,offers:n=>`${n} ${n===1?'ship':'ships'}`,from:'from',cheapest:'cheapest',only:'only here',also:'Also:',
     save:'Save',saved:'Saved ✓',none:'No ships match these filters.',wishEmpty:'Nothing saved yet. Click “Save” on a ship in the list. You will then see the total, your budget and your buying stops here.',
     remove:'Remove',total:'Total',stops:'Buying stops',budget:'Budget',rest:'Left over',missing:'Short by',oneStop:(l,d)=>`Everything is also sold at ${l}${d>0?`, ${money(d)} more than the cheapest split`:''}.`,useOne:'Buy everything there',cheapAll:'Set all to cheapest location',clear:'Clear list',clearAsk:'Really clear the wishlist?',
@@ -408,7 +449,7 @@ const money = n => fmt(n)+' aUEC';
 
 /* ---------- data and state ---------- */
 let D, LOC, SHIP;
-const DEFAULTS = {view:'ship',q:'',sys:'',loc:'',role:'',man:'',type:'',budget:'',scu:'',sort:'price',dir:1};
+const DEFAULTS = {view:'ship',q:'',sys:'',loc:'',role:'',man:'',type:'',budget:'',scu:'',sort:'price',dir:1,rent:false};
 const saved = load(LS.state) || {};
 const S = Object.assign({}, DEFAULTS, saved.filters||{});
 let WISH = saved.wish || {};
@@ -416,11 +457,12 @@ const closedLocs = new Set();
 
 // Take a data object into use and drop wishlist entries it no longer sells.
 function ingest(d){
-  D=d; LOC=new Map(d.locs.map(l=>[l.id,l])); SHIP=new Map(d.ships.map(s=>[s.id,s]));
+  d.rlocs=d.rlocs||[]; d.ships.forEach(s=>{s.q=s.q||[];});   // data from version 1.0 has no rentals
+  D=d; LOC=new Map([...d.locs,...d.rlocs].map(l=>[l.id,l])); SHIP=new Map(d.ships.map(s=>[s.id,s]));
   for(const id of Object.keys(WISH)){
     const s=SHIP.get(+id);
     if(!s){delete WISH[id];continue;}
-    if(!s.p.some(o=>o[0]===WISH[id])) WISH[id]=s.p[0][0];
+    if(!offersOf(s).some(o=>o[0]===WISH[id])) WISH[id]=s.p[0][0];
   }
 }
 // Persist filters and wishlist for the next visit.
@@ -435,6 +477,14 @@ function parseBudget(v){
   const n=f?parseFloat(m[1].replace(',','.'))*f:parseInt(m[1].replace(/[.,]/g,''),10);
   return Number.isFinite(n)?Math.round(n):null;
 }
+// All offers of a ship: purchases, then rentals.
+const offersOf = s => [...s.p,...s.q];
+// Is this terminal a rental station?
+const isRent = tid => !!LOC.get(tid).r;
+// Purchase and rental locations in display order.
+const allLocs = () => [...D.locs,...D.rlocs].sort((a,b)=>a.sys.localeCompare(b.sys)||a.place.localeCompare(b.place)||a.shop.localeCompare(b.shop));
+// Locations the lists show: rental stations only with the switch on.
+const visibleLocs = () => S.rent ? allLocs() : D.locs;
 // Location label for lists: place plus planet if there is one.
 const locLabel = l => l.body ? `${l.place} (${l.body})` : l.place;
 // Crew as text; a range only if minimum and maximum differ.
@@ -457,16 +507,16 @@ function cmp(a,b){
   const r=typeof a==='string'?a.localeCompare(b,LANG):a-b;
   return r*S.dir;
 }
-// Value of the active sort key for one ship at one offer.
-function sortValue(s,o){
+// Value of the active sort key for one ship; o is its offer, r its rental offer (either may be missing).
+function sortValue(s,o,r){
   switch(S.sort){
-    case 'name':return s.n; case 'man':return s.m; case 'price':return o[1];
-    case 'loc':return locLabel(LOC.get(o[0])); case 'scu':return s.scu;
+    case 'name':return s.n; case 'man':return s.m; case 'price':return o?o[1]:null; case 'rent':return r?r[1]:null;
+    case 'loc':return o?locLabel(LOC.get(o[0])):null; case 'scu':return s.scu;
     case 'crew':return s.crew?s.crew[1]:null; default:return s.len;
   }
 }
 // Sort [ship, offer] pairs by the active key, then by name.
-const sortPairs = pairs => pairs.sort((x,y)=>cmp(sortValue(x[0],x[1]),sortValue(y[0],y[1]))||x[0].n.localeCompare(y[0].n,LANG));
+const sortPairs = pairs => pairs.sort((x,y)=>cmp(sortValue(x[0],x[1],x[2]),sortValue(y[0],y[1],y[2]))||x[0].n.localeCompare(y[0].n,LANG));
 
 /* ---------- list views ---------- */
 // The save button; in the location view it pins the ship to that location.
@@ -489,49 +539,58 @@ function renderShips(){
   const budget=parseBudget(S.budget), pairs=[];
   for(const s of D.ships){
     if(!shipPass(s)) continue;
-    const o=s.p.find(x=>locPass(x[0]));
-    if(o&&(budget==null||o[1]<=budget)) pairs.push([s,o]);
+    const fits=x=>locPass(x[0])&&(budget==null||x[1]<=budget);
+    const o=s.p.find(fits), r=S.rent?s.q.find(fits):undefined;
+    if(o||r) pairs.push([s,o,r]);
   }
   sortPairs(pairs);
   $('#count').textContent=t('hits')(pairs.length);
   if(!pairs.length) return emptyHtml();
-  const rows=pairs.map(([s,o])=>{
-    const isBest=o[1]===s.p[0][1];
-    const others=s.p.filter(x=>x[0]!==o[0]).map(x=>`${esc(LOC.get(x[0]).place)} ${fmt(x[1])}`).join(' · ');
-    const badge=s.p.length===1?`<span class="best">${t('only')}</span>`:(isBest?`<span class="best">${t('cheapest')}</span>`:'');
-    return `<tr><td>${wishBtn(s,null)}</td>${nameCell(s)}${attrCells(s)}<td class="num"><span class="price">${fmt(o[1])}</span></td><td><div>${esc(locLabel(LOC.get(o[0])))} ${badge}</div><div class="sub">${esc(LOC.get(o[0]).sys)}</div>${others?`<div class="alts">${t('also')} ${others}</div>`:''}</td></tr>`;
-  }).join('');
-  return `<div class="tablewrap"><table><thead><tr><th></th>${th('name',t('ship'))}${th('scu',t('scu'),'num')}${th('crew',t('crew'),'num hide-s')}${th('len',t('len'),'num hide-s')}${th('price',t('price')+' (aUEC)','num')}${th('loc',t('loc'))}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  const rows=pairs.map(([s,o,r])=>`<tr><td>${wishBtn(s,null)}</td>${nameCell(s)}${attrCells(s)}<td class="num"><span class="price">${o?fmt(o[1]):'–'}</span></td>${buyCell(s,o)}${S.rent?rentCell(s,r):''}</tr>`).join('');
+  return `<div class="tablewrap"><table><thead><tr><th></th>${th('name',t('ship'))}${th('scu',t('scu'),'num')}${th('crew',t('crew'),'num hide-s')}${th('len',t('len'),'num hide-s')}${th('price',t('price')+' (aUEC)','num')}${th('loc',t('loc'))}${S.rent?th('rent',t('rent')+' (aUEC)'):''}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
-// Comparison cell of the location view: cheapest label or surcharge against the cheapest place.
-function cmpCell(s,o){
-  if(s.p.length===1) return `<span class="best">${t('only')}</span>`;
-  if(o[1]===s.p[0][1]) return `<span class="best">${t('cheapest')}</span>`;
-  const pct=((o[1]/s.p[0][1]-1)*100).toLocaleString(LANG==='de'?'de-DE':'en-GB',{maximumFractionDigits:1});
-  return `<span class="sub">+${pct} % · ${esc(LOC.get(s.p[0][0]).place)} ${fmt(s.p[0][1])}</span>`;
+// Location cell of the ship view: where to buy, with the other places.
+function buyCell(s,o){
+  if(!o) return '<td>–</td>';
+  const others=s.p.filter(x=>x[0]!==o[0]).map(x=>`${esc(LOC.get(x[0]).place)} ${fmt(x[1])}`).join(' · ');
+  const badge=s.p.length===1?`<span class="best">${t('only')}</span>`:(o[1]===s.p[0][1]?`<span class="best">${t('cheapest')}</span>`:'');
+  return `<td><div>${esc(locLabel(LOC.get(o[0])))} ${badge}</div><div class="sub">${esc(LOC.get(o[0]).sys)}</div>${others?`<div class="alts">${t('also')} ${others}</div>`:''}</td>`;
+}
+// Rental cell of the ship view: best daily price in the filters and how many other stations rent it.
+function rentCell(s,r){
+  if(!r) return '<td>–</td>';
+  const more=s.q.length-1;
+  return `<td><span class="price">${fmt(r[1])}</span><span class="sub">${t('perDay')}</span><div class="sub">${esc(LOC.get(r[0]).place)} · ${esc(LOC.get(r[0]).shop)}</div>${more?`<div class="alts">${t('more')(more)}</div>`:''}</td>`;
+}
+// Comparison cell of the location view: cheapest label or surcharge against the cheapest offer of the same kind.
+function cmpCell(list,o){
+  if(list.length===1) return `<span class="best">${t('only')}</span>`;
+  if(o[1]===list[0][1]) return `<span class="best">${t('cheapest')}</span>`;
+  const pct=((o[1]/list[0][1]-1)*100).toLocaleString(LANG==='de'?'de-DE':'en-GB',{maximumFractionDigits:1});
+  return `<span class="sub">+${pct} % · ${esc(LOC.get(list[0][0]).place)} ${fmt(list[0][1])}</span>`;
 }
 // Render the view grouped by star system and location.
 function renderLocs(){
   const budget=parseBudget(S.budget), groups=new Map();
   for(const s of D.ships){
     if(!shipPass(s)) continue;
-    for(const o of s.p){
+    for(const o of S.rent?offersOf(s):s.p){
       if(!locPass(o[0])||(budget!=null&&o[1]>budget)) continue;
       if(!groups.has(o[0])) groups.set(o[0],[]);
-      groups.get(o[0]).push([s,o]);
+      groups.get(o[0]).push([s,o,isRent(o[0])?o:undefined]);
     }
   }
   const total=[...groups.values()].reduce((a,g)=>a+g.length,0);
   $('#count').textContent=t('hitsLoc')(total,groups.size);
   if(!total) return emptyHtml();
   let html='',sys=null;
-  for(const l of D.locs){
+  for(const l of visibleLocs()){
     const g=groups.get(l.id); if(!g) continue;
     if(l.sys!==sys){sys=l.sys;html+=`<h2 class="sysh">${esc(sys)}</h2>`;}
     sortPairs(g);
     const low=Math.min(...g.map(p=>p[1][1]));
-    const rows=g.map(([s,o])=>`<tr><td>${wishBtn(s,l.id)}</td>${nameCell(s)}${attrCells(s)}<td class="num"><span class="price">${fmt(o[1])}</span></td><td>${cmpCell(s,o)}</td></tr>`).join('');
-    html+=`<details class="loc" data-loc="${l.id}"${closedLocs.has(l.id)?'':' open'}><summary><b>${esc(l.place)}</b><span class="sub">${esc([l.body,l.shop].filter(Boolean).join(' · '))}</span><span class="sub">${t('offers')(g.length)} · ${t('from')} ${money(low)}</span></summary><div class="tablewrap"><table><thead><tr><th></th>${th('name',t('ship'))}${th('scu',t('scu'),'num')}${th('crew',t('crew'),'num hide-s')}${th('len',t('len'),'num hide-s')}${th('price',t('here')+' (aUEC)','num')}<th>${t('cmp')}</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
+    const rows=g.map(([s,o])=>`<tr><td>${wishBtn(s,l.id)}</td>${nameCell(s)}${attrCells(s)}<td class="num"><span class="price">${fmt(o[1])}</span></td><td>${cmpCell(l.r?s.q:s.p,o)}</td></tr>`).join('');
+    html+=`<details class="loc" data-loc="${l.id}"${closedLocs.has(l.id)?'':' open'}><summary><b>${esc(l.place)}</b>${l.r?`<span class="rtag">${t('rentTag')}</span>`:''}<span class="sub">${esc([l.body,l.shop].filter(Boolean).join(' · '))}</span><span class="sub">${t('offers')(g.length)} · ${t('from')} ${money(low)}${l.r?t('perDay'):''}</span></summary><div class="tablewrap"><table><thead><tr><th></th>${th('name',t('ship'))}${th('scu',t('scu'),'num')}${th('crew',t('crew'),'num hide-s')}${th('len',t('len'),'num hide-s')}${th('price',(l.r?t('rent'):t('here'))+' (aUEC)','num')}<th>${t('cmp')}</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
   }
   return html;
 }
@@ -548,12 +607,15 @@ function commonLocs(ids){
   }).filter(Boolean).sort((a,b)=>a.sum-b.sum);
 }
 // Price of a saved ship at its chosen location.
-const wishPrice = id => SHIP.get(+id).p.find(x=>x[0]===WISH[id])[1];
+const wishPrice = id => offersOf(SHIP.get(+id)).find(x=>x[0]===WISH[id])[1];
+// Offers of the same kind (purchase or rental) as the chosen one, cheapest first.
+const wishKind = id => isRent(WISH[id]) ? SHIP.get(+id).q : SHIP.get(+id).p;
 // One saved ship with its location choice.
 function wishItem(id){
   const s=SHIP.get(+id);
-  const opts=s.p.map(o=>`<option value="${o[0]}"${o[0]===WISH[id]?' selected':''}>${esc(LOC.get(o[0]).place)} – ${fmt(o[1])}</option>`).join('');
-  return `<div class="witem"><div class="top"><span class="name">${esc(s.n)}</span><span class="price">${fmt(wishPrice(id))}</span></div><div class="row"><select data-wloc="${id}" aria-label="${t('loc')}">${opts}</select><button class="wbtn" type="button" data-remove="${id}">${t('remove')}</button></div></div>`;
+  const list=S.rent||isRent(WISH[id])?offersOf(s):s.p;
+  const opts=list.map(o=>`<option value="${o[0]}"${o[0]===WISH[id]?' selected':''}>${isRent(o[0])?t('rentTag')+': ':''}${esc(LOC.get(o[0]).place)} – ${fmt(o[1])}${isRent(o[0])?t('perDay'):''}</option>`).join('');
+  return `<div class="witem"><div class="top"><span class="name">${esc(s.n)}</span><span class="price">${fmt(wishPrice(id))}${isRent(WISH[id])?t('perDay'):''}</span></div><div class="row"><select data-wloc="${id}" aria-label="${t('loc')}">${opts}</select><button class="wbtn" type="button" data-remove="${id}">${t('remove')}</button></div></div>`;
 }
 // Render the wishlist: stops, total, budget and the one-stop hint.
 function renderWish(){
@@ -562,24 +624,28 @@ function renderWish(){
   if(!ids.length){$('#wish').innerHTML=`<p class="sub">${t('wishEmpty')}</p>`;return;}
   const stops=new Map();
   ids.forEach(id=>{const k=WISH[id]; if(!stops.has(k)) stops.set(k,[]); stops.get(k).push(id);});
-  const total=ids.reduce((a,id)=>a+wishPrice(id),0);
-  const cheapest=ids.reduce((a,id)=>a+SHIP.get(+id).p[0][1],0);
+  const rentIds=ids.filter(id=>isRent(WISH[id]));
+  const rentDay=rentIds.reduce((a,id)=>a+wishPrice(id),0);
+  const total=ids.reduce((a,id)=>a+wishPrice(id),0)-rentDay;
+  const cheapest=ids.reduce((a,id)=>a+wishKind(id)[0][1],0);
   let html='';
-  for(const l of D.locs){
+  for(const l of allLocs()){
     const g=stops.get(l.id); if(!g) continue;
     g.sort((a,b)=>SHIP.get(+a).n.localeCompare(SHIP.get(+b).n,LANG));
-    html+=`<div class="stop"><h3><span>${esc(locLabel(l))}</span><span>${fmt(g.reduce((a,id)=>a+wishPrice(id),0))}</span></h3>${g.map(wishItem).join('')}</div>`;
+    html+=`<div class="stop"><h3><span>${esc(locLabel(l))}${l.r?` <span class="rtag">${t('rentTag')}</span>`:''}</span><span>${fmt(g.reduce((a,id)=>a+wishPrice(id),0))}${l.r?t('perDay'):''}</span></h3>${g.map(wishItem).join('')}</div>`;
   }
   const budget=parseBudget(S.budget);
-  html+=`<div class="sum"><span>${t('stops')}</span><span class="v">${stops.size}</span><span>${t('total')}</span><span class="v">${money(total)}</span>`;
+  html+=`<div class="sum"><span>${t('stops')}</span><span class="v">${stops.size}</span><span>${t(rentIds.length?'totalBuy':'total')}</span><span class="v">${money(total)}</span>`;
+  if(rentIds.length) html+=`<span>${t('rentSum')}</span><span class="v">${money(rentDay)}</span>`;
   if(budget!=null){
-    const rest=budget-total;
-    html+=`<span>${t('budget')}</span><span class="v">${money(budget)}</span><span>${t(rest<0?'missing':'rest')}</span><span class="v ${rest<0?'over':'okv'}">${money(Math.abs(rest))}</span>`;
+    const rest=budget-total-rentDay;
+    const label=rentIds.length?(rest<0?'missingRent':'restRent'):(rest<0?'missing':'rest');
+    html+=`<span>${t('budget')}</span><span class="v">${money(budget)}</span><span>${t(label)}</span><span class="v ${rest<0?'over':'okv'}">${money(Math.abs(rest))}</span>`;
   }
   html+='</div>';
-  const common=stops.size>1?commonLocs(ids)[0]:null;
+  const common=stops.size>1&&!rentIds.length?commonLocs(ids)[0]:null;
   if(common) html+=`<div class="hint">${esc(t('oneStop')(locLabel(common.l),common.sum-cheapest))}<button class="btn" type="button" data-onestop="${common.l.id}">${t('useOne')}</button></div>`;
-  if(total>cheapest) html+=`<div class="hint"><button class="btn" type="button" data-cheapall="1">${t('cheapAll')}</button></div>`;
+  if(total+rentDay>cheapest) html+=`<div class="hint"><button class="btn" type="button" data-cheapall="1">${t('cheapAll')}</button></div>`;
   html+=`<div class="sidefoot"><button class="btn danger" type="button" data-clear="1">${t('clear')}</button></div>`;
   $('#wish').innerHTML=html;
 }
@@ -594,16 +660,16 @@ function fill(id,opts,key){
 }
 // Build all select options from the data and the current language.
 function buildControls(){
-  const systems=[...new Set(D.locs.map(l=>l.sys))];
+  const systems=[...new Set(visibleLocs().map(l=>l.sys))];
   fill('#sys',[['',t('allSys')],...systems.map(s=>[s,s])],'sys');
-  fill('#loc',[['',t('allLoc')],...D.locs.filter(l=>!S.sys||l.sys===S.sys).map(l=>[l.id,`${l.place} · ${l.shop}`])],'loc');
+  fill('#loc',[['',t('allLoc')],...visibleLocs().filter(l=>!S.sys||l.sys===S.sys).map(l=>[l.id,`${l.place} · ${l.shop}`])],'loc');
   const roles=[...new Set(D.ships.flatMap(s=>s.r))].map(r=>[r,t('roles')[r]]).sort((a,b)=>a[1].localeCompare(b[1],LANG));
   fill('#role',[['',t('allRole')],...roles],'role');
   const mans=[...new Set(D.ships.map(s=>s.m).filter(Boolean))].sort((a,b)=>a.localeCompare(b,LANG));
   fill('#man',[['',t('allMan')],...mans.map(m=>[m,m])],'man');
   fill('#type',[['',t('allType')],['space',t('space')],['ground',t('ground')]],'type');
-  fill('#sort',['price','name','man','loc','scu','crew','len'].map(k=>[k,t(k)]),'sort');
-  $('#q').value=S.q; $('#budget').value=S.budget; $('#scu').value=S.scu;
+  fill('#sort',['price',...(S.rent?['rent']:[]),'name','man','loc','scu','crew','len'].map(k=>[k,t(k)]),'sort');
+  $('#q').value=S.q; $('#budget').value=S.budget; $('#scu').value=S.scu; $('#rent').checked=S.rent;
   $('#q').placeholder=t('search'); $('#budget').placeholder=t('budgetPh');
 }
 // Redraw list, wishlist and the small status texts.
@@ -612,7 +678,7 @@ function render(){
   $('#dirBtn').textContent=t(S.dir>0?'asc':'desc');
   $('#content').innerHTML=S.view==='ship'?renderShips():renderLocs();
   renderWish();
-  $('#buildStat').textContent=t('stat')(D);
+  $('#buildStat').textContent=t('stat')(D)+(S.rent?t('rentStat')(D):'');
   persist();
 }
 // Show a short status message.
@@ -623,7 +689,7 @@ function resetFilters(){Object.assign(S,{q:'',sys:'',loc:'',role:'',man:'',type:
 function toggleWish(id,tid){
   const s=SHIP.get(id);
   if(tid==null){
-    if(id in WISH) delete WISH[id]; else WISH[id]=(s.p.find(o=>locPass(o[0]))||s.p[0])[0];
+    if(id in WISH) delete WISH[id]; else WISH[id]=(s.p.find(o=>locPass(o[0]))||(S.rent&&s.q.find(o=>locPass(o[0])))||s.p[0])[0];
   } else if(WISH[id]===tid) delete WISH[id]; else WISH[id]=tid;
 }
 
@@ -632,6 +698,7 @@ function toggleWish(id,tid){
 ['role','man','type'].forEach(k=>$('#'+k).addEventListener('change',e=>{S[k]=e.target.value;render();}));
 $('#sys').addEventListener('change',e=>{S.sys=e.target.value;S.loc='';buildControls();render();});
 $('#loc').addEventListener('change',e=>{S.loc=e.target.value;render();});
+$('#rent').addEventListener('change',e=>{S.rent=e.target.checked;buildControls();render();});
 $('#sort').addEventListener('change',e=>{S.sort=e.target.value;S.dir=1;render();});
 $('#dirBtn').addEventListener('click',()=>{S.dir=-S.dir;render();});
 $('#resetBtn').addEventListener('click',resetFilters);
@@ -654,7 +721,7 @@ $('#wish').addEventListener('click',e=>{
   const d=e.target.closest('button'); if(!d) return;
   if(d.dataset.remove){delete WISH[d.dataset.remove];render();}
   else if(d.dataset.onestop){Object.keys(WISH).forEach(id=>{WISH[id]=+d.dataset.onestop;});render();}
-  else if(d.dataset.cheapall){Object.keys(WISH).forEach(id=>{WISH[id]=SHIP.get(+id).p[0][0];});render();}
+  else if(d.dataset.cheapall){Object.keys(WISH).forEach(id=>{WISH[id]=wishKind(id)[0][0];});render();}
   else if(d.dataset.clear&&confirm(t('clearAsk'))){WISH={};render();}
 });
 $('#themeBtn').addEventListener('click',()=>{const n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);save(LS.theme,n);});
