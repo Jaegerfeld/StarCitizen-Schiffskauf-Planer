@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.2.0] – 2026-11-16
+
+### Hinzugefügt
+- **Reiter „Komponenten“ (Vorschau):** Komponenten einzelner Schiffe tauschen, zunächst F7C Hornet Mk II und Guardian MX. In der Mitte eine eigene, stilisierte Draufsicht, rundum Karten mit Linien zum Einbauort. Die Auswahl zeigt nur Teile, die in den Steckplatz passen, standardmäßig nur ingame kaufbare.
+- **Turmwaffen und Raketen:** Unter jedem Turm und Raketenrack eine Unterkarte, z. B. „12 × Rakete S2“; eine Wahl gilt für alle gleichen Plätze darin.
+- **Summen:** Schild-HP, Waffenschaden/s, Raketenschaden, Kühlung und eine vereinfachte Energiebilanz, jeweils mit Differenz zum Werkszustand.
+- **Einkaufsliste:** günstigster Händler mit Sternsystem, alle Händler mit Preis und Preisstand zum Aufklappen. Die Bestückung steckt im Link und lässt sich teilen.
+
 ## [1.1.0] – 2026-11-10
 
 ### Hinzugefügt

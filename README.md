@@ -1,6 +1,6 @@
 # StarCitizen-Schiffskauf-Planer
 
-**Version 1.1.0** · 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
+**Version 1.2.0** · 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
 
 A ship purchase planner for *Star Citizen*: see **where each ship is cheapest** and **what is sold at
 your location**, then collect your picks on a wishlist with a budget.
@@ -19,6 +19,9 @@ The whole app is **one self-contained HTML file**: no install, no server. The in
 - **Filter** by search, system, location, role, budget, manufacturer, type and minimum cargo.
 - **Rentals (optional):** a switch adds daily rental prices and rental stations to both views.
 - **Wishlist:** choose the buying location per ship and see buying stops, total and remaining budget.
+- **Components (preview):** swap a ship's shields, power plants, coolers, quantum drive, radar, weapons,
+  turrets and missiles, only parts that fit, with totals and a shopping list (cheapest shop, all shops to
+  expand). First the F7C Hornet Mk II and the Guardian MX; the loadout is kept in the link.
 - **Daily data:** the online version is rebuilt every day. The in-app button loads that build's
   `data.json`, also from an offline copy.
 
@@ -34,6 +37,8 @@ Requires **Python 3.9+**, standard library only.
 
 Purchase and rental prices, vehicle data and terminals: [UEX](https://uexcorp.space) (public API). Prices are
 community reports and can lag behind the game, so verify in game before buying.
+Components, slots and key values: [Star Citizen Wiki API](https://api.star-citizen.wiki) (live-patch game data,
+including UEX prices per shop). The top views are own drawings made from own screenshots.
 
 ## Disclaimer
 
