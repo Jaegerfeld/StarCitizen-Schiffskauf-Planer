@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.11.2026
-# Geändert:       10.11.2026
+# Geändert:       16.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -11,6 +11,10 @@
 #   in der man ingame kaufbare Schiffe und Fahrzeuge nach Schiff oder nach
 #   Standort durchsucht, sortiert und auf einer Merkliste mit Budget sammelt.
 #   Per Schalter kommen Leihschiffe mit Tagespreisen dazu.
+#   Reiter „Komponenten“ (Vorschau): Komponenten eigener Schiffe tauschen, Daten
+#   aus der Star-Citizen-Wiki-API (komponenten.py, komponenten_schiffe.py,
+#   Oberfläche in komponenten_seite.py). Ist die Wiki-API beim Bau nicht
+#   erreichbar, entsteht die Seite trotzdem, der Reiter zeigt dann einen Hinweis.
 #   Quelle ist die öffentliche UEX-API (Kauf- und Mietpreise je Terminal,
 #   Fahrzeugstammdaten, Terminals, aktueller Spielstand).
 #   Erzeugt im Skript-Ordner:
@@ -25,7 +29,7 @@
 
 Usage:
   py schiffskauf_planer_bauen.py            fetch from UEX and build
-  py schiffskauf_planer_bauen.py --cache    use uex_cache.json instead of UEX (dev)
+  py schiffskauf_planer_bauen.py --cache    use uex_cache.json / kp_cache instead of the APIs (dev)
 """
 import json
 import pathlib
@@ -34,8 +38,10 @@ import sys
 import urllib.request
 from datetime import datetime, timezone
 
+import komponenten as kp
 import kopfzeile as kz
 import sc_design as sd
+from komponenten_seite import KP_CSS, KP_HTML, KP_JS
 from version import VERSION
 
 #: Script folder; all outputs are written here.
@@ -286,7 +292,15 @@ def main(argv):
         print(f"FEHLER: UEX-Daten nicht verfügbar: {e}", file=sys.stderr)
         return 1
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    try:
+        kp_data = kp.build(use_cache="--cache" in argv)
+    except Exception as e:  # noqa: BLE001 - the page must still build without the tab
+        print(f"WARNUNG: Komponentendaten (Wiki-API) nicht verfügbar: {e}", file=sys.stderr)
+        kp_data = None
+    kp_json = json.dumps(kp_data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     html = fill_header(bilingual(HTML_TEMPLATE))
+    html = (html.replace("/*KP_CSS*/", KP_CSS).replace("<!--KP_PANEL-->", KP_HTML)
+                .replace("/*KP_JS*/", KP_JS.replace("/*__KP__*/null", kp_json)))
     html = html.replace("/*__DATA__*/{}", payload).replace("__DATA_URL__", DATA_URL)
     OUT_HTML.write_text(html, encoding="utf-8")
     OUT_JSON.write_text(payload, encoding="utf-8")
@@ -295,6 +309,9 @@ def main(argv):
           f"Spielstand {data['patch']}, Preise gemeldet {data['from']} bis {data['to']}.")
     print(f"  {sum(len(s['q']) for s in data['ships'])} Mietangebote an "
           f"{len(data['rlocs'])} Mietstationen.")
+    if kp_data:
+        print(f"  Komponenten: {len(kp_data['ships'])} Schiffe, "
+              f"{sum(len(c) for c in kp_data['catalog'].values())} Teile im Katalog.")
     return 0
 
 
@@ -369,6 +386,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   @media (max-width:919px){.layout{grid-template-columns:minmax(0,1fr)} .side{position:static;max-height:none}}
   @media (max-width:700px){.hide-s{display:none} .f{min-width:calc(50% - 6px);flex:1 1 calc(50% - 6px)} .f.grow{flex-basis:100%} th,td{padding:7px 6px}}
   @media (pointer:coarse){.wbtn,.tab{min-height:44px}}
+  /*KP_CSS*/
   /*FH_CSS*/
 </style>
 </head>
@@ -382,7 +400,9 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" type="button" data-view="ship">{{Nach Schiff|By ship}}</button>
       <button class="tab" role="tab" type="button" data-view="loc">{{Nach Standort|By location}}</button>
+      <button class="tab" role="tab" type="button" data-view="kp">{{Komponenten|Components}}</button>
     </div>
+<!--KP_PANEL-->
     <div class="filters">
       <label class="f grow">{{Suche|Search}}<input type="search" id="q" autocomplete="off"></label>
       <label class="f">{{System|System}}<select id="sys"></select></label>
@@ -675,8 +695,10 @@ function buildControls(){
 // Redraw list, wishlist and the small status texts.
 function render(){
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===S.view?'true':'false'));
+  // The components tab hides filters, list and wishlist and takes the full width (see komponenten_seite.py).
+  document.body.classList.toggle('kp-on',S.view==='kp');
   $('#dirBtn').textContent=t(S.dir>0?'asc':'desc');
-  $('#content').innerHTML=S.view==='ship'?renderShips():renderLocs();
+  $('#content').innerHTML=S.view==='kp'?'':S.view==='ship'?renderShips():renderLocs();
   renderWish();
   $('#buildStat').textContent=t('stat')(D)+(S.rent?t('rentStat')(D):'');
   persist();
@@ -749,6 +771,7 @@ const cached=load(LS.raw);
 ingest(cached&&cached.schema===RAW.schema&&cached.generated>RAW.generated?cached:RAW);
 /*FH_JS*/
 panels=scPanels($('#ptabs'),[{key:'list',label:'<span class="de">Schiffe</span><span class="en">Ships</span>',els:[$('#mainPanel')]},{key:'wish',label:'<span class="de">Merkliste</span><span class="en">Wishlist</span>',els:[$('#wishPanel')]}],'list');
+/*KP_JS*/
 buildControls();
 render();
 </script>
