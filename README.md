@@ -1,6 +1,6 @@
 # StarCitizen-Schiffskauf-Planer
 
-**Version 1.2.0** · 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
+**Version 1.2.1** · 🇬🇧 English · [🇩🇪 Deutsch](README.de.md)
 
 A ship purchase planner for *Star Citizen*: see **where each ship is cheapest** and **what is sold at
 your location**, then collect your picks on a wishlist with a budget.

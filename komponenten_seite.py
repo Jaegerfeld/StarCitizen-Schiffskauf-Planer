@@ -14,7 +14,9 @@
 #   günstigstem Händler und allen Händlern zum Aufklappen. Alles ist mit kp-
 #   bzw. #kpPanel abgegrenzt, damit es die übrige Seite nicht berührt; das
 #   Skript läuft in einer eigenen Funktion und reagiert auf die Sprache der
-#   Seite. Der Reiter steht neben „Nach Schiff“ und „Nach Standort“ und blendet
+#   Seite. Die Auswahl-Leiste schiebt die Seite ab 1280 px zur Seite statt sie zu
+#   verdecken und schließt per ×, Esc, erneutem Kartenklick oder Klick daneben.
+#   Der Reiter steht neben „Nach Schiff“ und „Nach Standort“ und blendet
 #   Filter, Liste und Merkliste aus. Die Bestückung steckt im Link
 #   (#kp=<schiff>&<platz>=<teil>).
 # =============================================================================
@@ -53,6 +55,7 @@ KP_HTML = r"""
   </div>
   <aside class="kp-drawer" id="kp-drawer" aria-hidden="true" aria-labelledby="kp-dtitle">
     <div class="kp-dh">
+      <button type="button" class="kp-x" id="kp-dx" aria-label="Schließen / Close" title="Schließen / Close (Esc)">×</button>
       <h3 id="kp-dtitle">–</h3>
       <p id="kp-dsub"></p>
       <label><input type="checkbox" id="kp-onlybuy" checked> <span class="de">Nur ingame kaufbare zeigen</span><span class="en">Only show parts buyable in game</span></label>
@@ -132,9 +135,13 @@ KP_CSS = r"""
   #kpPanel .kp-dt{color:var(--muted);font-size:12px;white-space:nowrap}
   #kpPanel .kp-foot{color:var(--muted);font-size:12.5px;margin:10px 0 0}
   #kpPanel .kp-empty{color:var(--muted);padding:18px 6px}
-  .kp-drawer{visibility:hidden;position:fixed;top:0;right:0;height:100%;width:min(460px,100%);background:var(--panel);border-left:1px solid var(--line);box-shadow:var(--shadow);transform:translateX(105%);transition:transform .18s;z-index:40;display:flex;flex-direction:column}
+  .kp-drawer{visibility:hidden;position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:var(--panel);border-left:1px solid var(--line);box-shadow:var(--shadow);transform:translateX(105%);transition:transform .18s;z-index:40;display:flex;flex-direction:column}
   .kp-drawer.open{transform:none;visibility:visible}
-  .kp-dh{padding:16px 18px 10px;border-bottom:1px solid var(--line)}
+  .kp-dh{position:relative;padding:16px 64px 10px 18px;border-bottom:1px solid var(--line)}
+  .kp-x{position:absolute;top:10px;right:10px;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--ink);font:400 28px/1 var(--body);cursor:pointer}
+  .kp-x:hover,.kp-x:focus-visible{border-color:var(--accent);color:var(--accent)}
+  /* Wide screens: the open drawer makes room instead of covering the right card column. */
+  @media (min-width:1280px){body.kp-on.kp-open{padding-right:420px} body.kp-on.kp-open .kp-drawer{box-shadow:none}}
   .kp-dh h3{font-family:var(--disp);font-size:22px;margin:0}
   .kp-dh p{margin:2px 0 8px;color:var(--muted);font-size:13.5px}
   .kp-dh label{display:flex;gap:8px;align-items:center;font-size:14px;min-height:32px;cursor:pointer}
@@ -241,7 +248,8 @@ function render(){
   cols.T.sort((a,b)=>ANC[a.id][1]-ANC[b.id][1]); cols.C.sort((a,b)=>ANC[a.id][0]-ANC[b.id][0]||ANC[a.id][1]-ANC[b.id][1]);
   const h=a=>a.flatMap(s=>[s,...SL.filter(v=>v.parent===s)]).map(cardHTML).join('');
   for(const r of ['L','R','C','T']) $k('col'+r).innerHTML=h(cols[r]);
-  box.querySelectorAll('.kp-card').forEach(c=>c.addEventListener('click',()=>openDrawer(c.dataset.id)));
+  // A second click on the selected card closes the drawer again.
+  box.querySelectorAll('.kp-card').forEach(c=>c.addEventListener('click',()=>{if(open&&open.id===c.dataset.id) closeDrawer(); else openDrawer(c.dataset.id);}));
   $k('ships').innerHTML=KP.ships.map(x=>`<button type="button" data-slug="${x.slug}" aria-pressed="${x.slug===ship.slug}">${esc(x.short)}</button>`).join('');
   $k('stand').textContent=`· ${T('Spielstand','Game version')} ${KP.patch||'–'} · ${T('Stand','As of')} ${KP.built}`;
   renderSum(); renderShop(); requestAnimationFrame(wires); highlight();
@@ -308,7 +316,7 @@ function openDrawer(id){
   $k('dtitle').textContent=`${open.n>1?open.n+' × ':''}${T(...KP.types[open.type])} S${open.size}`;
   $k('dsub').textContent=open.sub?T(`Gilt für ${open.n>1?'alle '+open.n+' Plätze':'den Platz'} in ${where}. Werte je Stück im Vergleich zum Standardteil.`,`Applies to ${open.n>1?'all '+open.n+' mounts':'the mount'} in ${where}. Values per piece compared with the stock part.`)
     :T(`Passend für diesen Steckplatz (${sideTxt(open)}). Werte im Vergleich zum Standardteil.`,`Fits this slot (${sideTxt(open)}). Values compared with the stock part.`);
-  fillList(); highlight(); const d=$k('drawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false'); $k('dclose').focus();
+  fillList(); highlight(); const d=$k('drawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false'); document.body.classList.add('kp-open'); $k('dx').focus({preventScroll:true});
 }
 function fillList(){
   const s=open; const k=MAIN[s.type]; const only=$k('onlybuy').checked; const base=item(stock(s));
@@ -333,11 +341,15 @@ function dropSubs(id){for(const k in state) if(k.startsWith(id+'|')) delete stat
 function changed(){writeHash(); render(); open=open&&(SL.find(s=>s.id===open.id)||open); if(open) fillList();}
 function highlight(){box.querySelectorAll('.kp-card').forEach(c=>c.classList.toggle('sel',!!open&&c.dataset.id===open.id));
   box.querySelectorAll('#kp-wires path').forEach(p=>p.classList.toggle('on',!!open&&p.dataset.id===open.id));}
-function closeDrawer(){const d=$k('drawer'); d.classList.remove('open'); d.setAttribute('aria-hidden','true'); const id=open?.id; open=null; highlight();
-  if(id) box.querySelector(`.kp-card[data-id="${CSS.escape(id)}"]`)?.focus();}
+function closeDrawer(){const d=$k('drawer'); d.classList.remove('open'); d.setAttribute('aria-hidden','true'); document.body.classList.remove('kp-open'); const id=open?.id; open=null; highlight();
+  if(id) box.querySelector(`.kp-card[data-id="${CSS.escape(id)}"]`)?.focus({preventScroll:true});}
 
 /* ---------- events ---------- */
 $k('dclose').addEventListener('click',closeDrawer);
+$k('dx').addEventListener('click',closeDrawer);
+// A click outside the drawer and outside the cards closes it (cards switch the selection instead).
+// The event path is taken at dispatch, so re-rendered (detached) list items still count as inside.
+document.addEventListener('click',e=>{if(open&&!e.composedPath().some(n=>n.id==='kp-drawer'||n.classList?.contains('kp-card'))) closeDrawer();});
 $k('onlybuy').addEventListener('change',fillList);
 $k('dreset').addEventListener('click',()=>{delete state[open.id]; if(!open.sub) dropSubs(open.id); changed();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open) closeDrawer();});

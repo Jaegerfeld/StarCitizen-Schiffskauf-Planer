@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.2.1] – 2026-11-16
+
+### Behoben
+- **Komponenten-Auswahl:** Die Leiste rechts verdeckt auf breiten Bildschirmen (ab 1280 px, z. B. Full HD) nicht mehr die rechte Kartenspalte, sondern schiebt die Seite zur Seite. Schließen geht jetzt auch über das × oben rechts, einen zweiten Klick auf dieselbe Karte, einen Klick neben die Leiste oder Esc.
+
 ## [1.2.0] – 2026-11-16
 
 ### Hinzugefügt
