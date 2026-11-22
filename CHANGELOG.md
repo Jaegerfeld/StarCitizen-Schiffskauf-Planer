@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.3.1] – 2026-11-22
+
+### Behoben
+- Budget: Eine Kommazahl ohne Kürzel wurde falsch gelesen (`2.5` als 25). Jetzt gilt: Punkt oder Komma vor genau drei Ziffern trennt Tausender (`2.500.000`, `2,500,000`), sonst ist es ein Dezimaltrenner. Unlesbare Eingaben (z. B. `2.5.1`) gelten wie bisher als kein Budget.
+
 ## [1.3.0] – 2026-11-21
 
 ### Hinzugefügt
