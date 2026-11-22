@@ -49,7 +49,7 @@ Goal: you pick two ships, set a budget and find out where to buy them for the lo
 
 ### Tips
 
-- The budget accepts `750k`, `5m`, `2.5m` and `2,500,000`. Use decimals only with a suffix: `2.5` on its own is read as 25.
+- The budget accepts `750k`, `5m`, `2.5m`, `2,500,000` and `2.500.000`. Decimals need a suffix: `2.5` on its own means 2.5 aUEC.
 - When you change **System**, **Location** goes back to **All locations**.
 - With **Show rentals** you can also save a ship for renting: choose an entry starting with **Rental:** on the wishlist. **Purchase total** and **Rent per day** are then shown separately, and the remaining budget includes one day of rent.
 - In **By location** you can collapse single locations.

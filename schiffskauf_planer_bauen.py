@@ -487,14 +487,21 @@ function ingest(d){
 }
 // Persist filters and wishlist for the next visit.
 const persist = () => save(LS.state,{filters:S,wish:WISH});
-// Parse a budget leniently: "5m", "2,5 Mio", "750k" or "2.500.000"; null if empty or unreadable.
+// Parse a budget leniently: "5m", "2,5 Mio", "750k", "2.500.000" or "2,500,000"; null if empty or unreadable.
+// Without a suffix, "." or "," followed by groups of exactly three digits is a thousands separator;
+// any other single separator is a decimal point ("2.5" is 2.5, not 25).
 function parseBudget(v){
   const s=String(v).trim().toLowerCase().replace(/\s/g,'');
   if(!s) return null;
   const m=s.match(/^([\d.,]+)(k|m|mio|mil|b|mrd)?$/);
   if(!m) return null;
   const f={k:1e3,m:1e6,mio:1e6,mil:1e6,b:1e9,mrd:1e9}[m[2]];
-  const n=f?parseFloat(m[1].replace(',','.'))*f:parseInt(m[1].replace(/[.,]/g,''),10);
+  const num=m[1], grouped=/^\d{1,3}([.,]\d{3})+$/.test(num);
+  let n;
+  if(f) n=parseFloat(num.replace(',','.'))*f;
+  else if(grouped||/^\d+$/.test(num)) n=parseInt(num.replace(/[.,]/g,''),10);
+  else if(/^\d*[.,]\d+$/.test(num)) n=parseFloat(num.replace(',','.'));
+  else n=NaN;
   return Number.isFinite(n)?Math.round(n):null;
 }
 // All offers of a ship: purchases, then rentals.

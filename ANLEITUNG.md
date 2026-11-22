@@ -49,7 +49,7 @@ Ziel: Du suchst zwei Schiffe aus, legst ein Budget fest und findest heraus, wo d
 
 ### Tipps
 
-- Das Budget versteht `750k`, `5m`, `2,5 Mio` und `2.500.000`. Kommazahlen nur mit Kürzel verwenden: `2.5` allein wird als 25 gelesen.
+- Das Budget versteht `750k`, `5m`, `2,5 Mio`, `2.500.000` und `2,500,000`. Kommazahlen brauchen ein Kürzel: `2,5` allein sind 2,5 aUEC.
 - Wenn du **System** änderst, springt **Standort** auf **Alle Standorte** zurück.
 - Mit **Leihschiffe anzeigen** kannst du ein Schiff auch zum Mieten merken: Wähl in der Merkliste einen Eintrag mit **Miete:**. Dann stehen **Summe Kauf** und **Miete pro Tag** getrennt, und der Budget-Rest rechnet einen Tag Miete mit ein.
 - In **Nach Standort** kannst du einzelne Standorte zuklappen.
