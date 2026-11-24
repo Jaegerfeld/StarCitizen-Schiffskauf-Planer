@@ -60,7 +60,7 @@ Goal: you pick two ships, set a budget and find out where to buy them for the lo
 Goal: you fit a different shield to the Hornet Mk II and find out where to buy it.
 
 1. Open the **Components** tab. Filters, list and wishlist are hidden here.
-2. Click **My ships …** (the first time **Choose ships**), tick your ships, for example the **F7C Hornet Mk II**, and click **Done**. Only your ships now appear at the top as buttons; use them to switch.
+2. Click **My ships …** (the first time **Choose ships**), add your ships with **+ Add**, for example the **F7C Hornet Mk II**, and click **Done**. Only your ships now appear at the top as buttons; use them to switch. If you own a model twice, add it twice: every ship has its own loadout, and under **Your fleet** you can give it a name.
 3. In the middle you see a top view. Around it are cards for each slot, with type, size (`S1`, `S2` …) and the fitted part. Lines lead to the mounting point.
 4. Click a card of type **Shield**. A selection opens on the right with all parts that fit this slot.
 5. Each row shows name, price, shop and the values. The numbers with + or - are the difference to the stock part. The tags **Stock** and **fitted** show what comes from the factory and what is fitted right now.

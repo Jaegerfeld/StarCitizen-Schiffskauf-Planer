@@ -5,12 +5,12 @@ Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog]
 ## [1.4.0] – 2026-11-24
 
 ### Hinzugefügt
-- **Komponenten: „Meine Schiffe …“.** Ein Dialog (nach Hersteller gruppiert, mit Suche) legt fest, welche Schiffe oben als Knöpfe zum Umschalten stehen. So bleibt die Leiste übersichtlich, wenn nach und nach alle Schiffe dazukommen. Ohne Auswahl zeigt der Reiter einen Hinweis mit dem Knopf **Schiffe wählen**.
-- **Auswahl und Bestückung werden im Browser gespeichert** (je Schiff, localStorage), ebenso das zuletzt gezeigte Schiff. Nichts geht an einen Server.
+- **Komponenten: „Meine Schiffe …“.** Ein Dialog stellt deine Flotte zusammen: Modelle (nach Hersteller gruppiert, mit Suche) per **+ Hinzufügen**, auch mehrfach – zum Beispiel zwei F7C Hornet Mk II. Jedes Schiff hat seine eigene Bestückung und einen Namen, den du ändern kannst; gleiche Modelle ohne Namen werden durchnummeriert („Hornet Mk II #2“). Nur die Schiffe deiner Flotte stehen oben als Knöpfe zum Umschalten. So bleibt die Leiste übersichtlich, wenn nach und nach alle Schiffe dazukommen. Ohne Auswahl zeigt der Reiter einen Hinweis mit dem Knopf **Schiffe wählen**.
+- **Flotte und Bestückungen werden im Browser gespeichert** (je Schiff, localStorage), ebenso das zuletzt gezeigte Schiff. Nichts geht an einen Server. Entfernen eines Schiffs mit eigener Bestückung fragt vorher nach.
 - **Waffen: Alpha-Schaden und Reichweite** auf jeder Waffenkarte (neben Schaden/s), Alpha auch in der Auswahlliste und als Summe **Alpha-Schaden gesamt** über der Draufsicht.
 
 ### Geändert
-- Ein Bestückungs-Link hat weiter Vorrang: Er zeigt sein Schiff auch dann, wenn es nicht zu deinen Schiffen gehört (gestrichelter Knopf, daneben **+ zu meinen Schiffen**). Gespeichert wird die Link-Bestückung erst, wenn du etwas änderst.
+- Ein Bestückungs-Link hat weiter Vorrang: Er zeigt sein Schiff auch dann, wenn es nicht zu deinen Schiffen gehört (gestrichelter Knopf). **+ zu meinen Schiffen** legt es als neues Schiff mit der Link-Bestückung an; vorher wird nichts gespeichert, ein Link überschreibt also keine eigene Bestückung.
 
 ## [1.3.1] – 2026-11-22
 

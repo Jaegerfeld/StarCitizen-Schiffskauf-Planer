@@ -60,7 +60,7 @@ Ziel: Du suchst zwei Schiffe aus, legst ein Budget fest und findest heraus, wo d
 Ziel: Du baust bei der Hornet Mk II einen anderen Schild ein und findest heraus, wo du ihn kaufst.
 
 1. Öffne den Reiter **Komponenten**. Filter, Liste und Merkliste sind hier ausgeblendet.
-2. Klick auf **Meine Schiffe …** (beim ersten Mal auf **Schiffe wählen**), hak deine Schiffe an, zum Beispiel die **F7C Hornet Mk II**, und klick auf **Fertig**. Oben stehen jetzt nur deine Schiffe als Knöpfe; damit schaltest du um.
+2. Klick auf **Meine Schiffe …** (beim ersten Mal auf **Schiffe wählen**), füg mit **+ Hinzufügen** deine Schiffe hinzu, zum Beispiel die **F7C Hornet Mk II**, und klick auf **Fertig**. Oben stehen jetzt nur deine Schiffe als Knöpfe; damit schaltest du um. Hast du ein Modell zweimal, füg es zweimal hinzu: Jedes Schiff hat seine eigene Bestückung, und unter **Deine Flotte** kannst du ihm einen Namen geben.
 3. In der Mitte siehst du eine Draufsicht. Rundum stehen Karten für jeden Steckplatz, mit Typ, Größe (`S1`, `S2` …) und dem verbauten Teil. Linien führen zum Einbauort.
 4. Klick auf eine Karte vom Typ **Schild**. Rechts öffnet sich eine Auswahl mit allen Teilen, die in diesen Steckplatz passen.
 5. Jede Zeile zeigt Name, Preis, Händler und die Werte. Die Zahlen mit + oder - sind der Unterschied zum Standardteil. Die Marken **Standard** und **verbaut** zeigen, was ab Werk drin ist und was gerade eingebaut ist.

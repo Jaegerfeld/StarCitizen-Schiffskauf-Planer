@@ -21,7 +21,7 @@ Die App ist **eine einzige HTML-Datei**, ohne Installation und ohne Server. Die 
 - **Merkliste:** Kaufort je Schiff wählen, Kaufstopps, Summe und Budget-Rest sehen.
 - **Komponenten (Vorschau):** Schilde, Kraftwerke, Kühler, Quantum, Radar, Waffen, Türme und Raketen eines
   Schiffs tauschen, nur passende Teile, mit Summen und Einkaufsliste (günstigster Händler, alle Händler zum
-  Aufklappen). Zunächst F7C Hornet Mk II und Guardian MX; eigene Schiffsauswahl („Meine Schiffe“), Bestückung je Schiff im Browser gespeichert und als Link teilbar; Waffen mit Schaden/s, Alpha und Reichweite.
+  Aufklappen). Zunächst F7C Hornet Mk II und Guardian MX; eigene Flotte („Meine Schiffe“, gleiche Modelle mehrfach möglich), Bestückung je Schiff im Browser gespeichert und als Link teilbar; Waffen mit Schaden/s, Alpha und Reichweite.
 - **Tägliche Daten:** Die Online-Version wird jeden Tag neu gebaut. Der Knopf in der App lädt deren
   `data.json`, auch aus einer Offline-Kopie.
 

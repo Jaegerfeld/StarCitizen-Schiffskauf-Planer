@@ -17,9 +17,11 @@
 #   Seite. Die Auswahl-Leiste schiebt die Seite ab 1280 px zur Seite statt sie zu
 #   verdecken und schließt per ×, Esc, erneutem Kartenklick oder Klick daneben.
 #   Der Reiter steht neben „Nach Schiff“ und „Nach Standort“ und blendet
-#   Filter, Liste und Merkliste aus. Oben stehen nur die Schiffe, die der
-#   Spieler im Dialog „Meine Schiffe“ gewählt hat; Auswahl und Bestückung je
-#   Schiff speichert der Browser (localStorage, Schlüssel scsk_kp). Die
+#   Filter, Liste und Merkliste aus. Oben stehen nur die Schiffe der eigenen
+#   Flotte aus dem Dialog „Meine Schiffe“; ein Modell darf mehrfach vorkommen
+#   (z. B. zwei Hornets), jedes Schiff hat einen Namen und seine eigene
+#   Bestückung. Flotte und Bestückungen speichert der Browser (localStorage,
+#   Schlüssel scsk_kp; der Stand mit einem Haken je Modell wird übernommen). Die
 #   Bestückung steckt zusätzlich im Link (#kp=<schiff>&<platz>=<teil>); ein
 #   Link hat Vorrang, gespeichert wird erst, wenn der Spieler etwas ändert.
 # =============================================================================
@@ -45,9 +47,14 @@ KP_HTML = r"""
   <dialog class="kp-mine" id="kp-mine" aria-labelledby="kp-mineh">
     <div class="kp-mh"><h3 id="kp-mineh"><span class="de">Meine Schiffe</span><span class="en">My ships</span></h3>
       <button type="button" class="kp-x" id="kp-minex" aria-label="Schließen / Close">×</button></div>
-    <p class="kp-mp"><span class="de">Hak die Schiffe an, die du planen willst. Weitere Schiffe kommen nach und nach dazu.</span><span class="en">Tick the ships you want to plan. More ships are added step by step.</span></p>
-    <label class="kp-mq"><span class="de">Suchen</span><span class="en">Search</span> <input type="search" id="kp-mineq" autocomplete="off"></label>
-    <div class="kp-mlist" id="kp-minelist"></div>
+    <div class="kp-mscroll">
+      <p class="kp-mp"><span class="de">Füg die Schiffe hinzu, die du planen willst. Ein Modell darfst du mehrmals hinzufügen, zum Beispiel zwei Hornets; jedes Schiff hat seine eigene Bestückung und einen Namen, den du ändern kannst.</span><span class="en">Add the ships you want to plan. You may add a model more than once, for example two Hornets; every ship has its own loadout and a name you can change.</span></p>
+      <h4 class="kp-mh4"><span class="de">Deine Flotte</span><span class="en">Your fleet</span></h4>
+      <div class="kp-fleet" id="kp-fleet"></div>
+      <h4 class="kp-mh4"><span class="de">Schiff hinzufügen</span><span class="en">Add a ship</span></h4>
+      <label class="kp-mq"><span class="de">Suchen</span><span class="en">Search</span> <input type="search" id="kp-mineq" autocomplete="off"></label>
+      <div class="kp-mlist" id="kp-minelist"></div>
+    </div>
     <div class="kp-mf"><span id="kp-minecount" role="status"></span>
       <button type="button" class="btn primary" id="kp-mineok"><span class="de">Fertig</span><span class="en">Done</span></button></div>
   </dialog>
@@ -111,10 +118,21 @@ KP_CSS = r"""
   .kp-mine[open]{display:flex;flex-direction:column}
   .kp-mine::backdrop{background:rgba(0,0,0,.55)}
   .kp-mh{position:relative;padding:16px 64px 4px 18px} .kp-mh h3{font-family:var(--disp);font-size:22px;margin:0}
+  .kp-mscroll{overflow:auto;min-height:0;flex:1 1 auto}
   .kp-mp{margin:0 18px 10px;color:var(--muted);font-size:13.5px}
+  .kp-mh4{font-family:var(--disp);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:14px 18px 6px}
+  .kp-fleet{padding:0 18px;display:flex;flex-direction:column;gap:6px}
+  .kp-frow{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px 8px 6px 10px}
+  .kp-frow input{min-height:38px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:600 15px var(--body);min-width:0}
+  .kp-frow small{grid-column:1;color:var(--muted);font-size:12.5px;padding-left:2px}
+  .kp-frow .kp-del{grid-column:2;grid-row:1/3;min-height:40px}
+  .kp-fleet .kp-empty{padding:6px 2px}
+  .kp-mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;padding:0 4px 0 8px;border-radius:8px}
+  .kp-mrow:hover{background:var(--panel2)} .kp-mrow small{color:var(--muted)}
+  .kp-mrow .btn{min-height:40px;white-space:nowrap}
   .kp-mq{display:flex;gap:8px;align-items:center;margin:0 18px 8px;font-size:14px}
   .kp-mq input{flex:1;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--ink);font:inherit}
-  .kp-mlist{overflow:auto;padding:0 18px 8px}
+  .kp-mlist{padding:0 18px 8px}
   .kp-mlist h4{font-family:var(--disp);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
   .kp-mlist label{display:flex;gap:10px;align-items:center;min-height:44px;padding:0 8px;border-radius:8px;cursor:pointer}
   .kp-mlist label:hover{background:var(--panel2)}
@@ -236,17 +254,27 @@ const fmt=n=>n==null?'–':(typeof n==='number'?n.toLocaleString(L()==='en'?'en-
 const STATE={};
 let ship=KP.ships[0], state={}, BASE=[], SL=[], ANC={}, open=null;
 
-/* ---------- my ships and saved loadouts (browser only) ---------- */
-// {mine:[slug], fit:{slug:{slotId:uuid}}, last:slug}; blocked storage simply means nothing is kept.
-const KEY='scsk_kp'; const DB=Object.assign({mine:[],fit:{},last:null},load(KEY)||{});
-DB.mine=DB.mine.filter(s=>KP.ships.some(x=>x.slug===s));
-let linkShip=null;   // ship opened by a link that is not (yet) one of my ships
+/* ---------- my fleet and saved loadouts (browser only) ---------- */
+// {v:2, fleet:[{id,slug,name}], fit:{id:{slotId:uuid}}, last:id}. A model may occur several times;
+// every fleet entry has its own loadout. Blocked storage simply means nothing is kept.
+const KEY='scsk_kp', LINK='__link';
+const model=slug=>KP.ships.find(x=>x.slug===slug);
+const DB=(()=>{const d=load(KEY)||{}, ok=f=>f&&model(f.slug);
+  if(Array.isArray(d.fleet)) return {v:2,fleet:d.fleet.filter(ok),fit:d.fit||{},last:d.last||null};
+  // Version 1 kept one ship per model under its slug: each becomes one fleet entry with that id, so its loadout stays.
+  return {v:2,fleet:(d.mine||[]).map(s=>({id:s,slug:s,name:''})).filter(ok),fit:d.fit||{},last:d.last||null};})();
+let inst=null, linkSlug=null;   // shown fleet entry (or LINK) and the model of a ship opened by a link
 const persist=()=>save(KEY,DB);
-const mine=()=>KP.ships.filter(x=>DB.mine.includes(x.slug));
-// Keep the loadout of the current ship (only changed slots); an unchanged ship has no entry.
-function keepFit(){const f={}; for(const k in state) if(state[k]) f[k]=state[k];
-  if(Object.keys(f).length) DB.fit[ship.slug]=f; else delete DB.fit[ship.slug]; DB.last=ship.slug; persist();}
-function loadFit(slug){return STATE[slug]||(STATE[slug]={...(DB.fit[slug]||{})});}
+const fleetEntry=id=>DB.fleet.find(f=>f.id===id);
+// Button label: own name, else the model's short name, numbered when the model occurs more than once.
+function label(f,noName){if(f.name&&!noName) return f.name; const m=model(f.slug).short, same=DB.fleet.filter(x=>x.slug===f.slug);
+  return same.length>1?`${m} #${same.indexOf(f)+1}`:m;}
+// New id for one more ship of a model: the slug for the first, then slug~2, slug~3 …
+function newId(slug){let i=1,id=slug; while(fleetEntry(id)) id=`${slug}~${++i}`; return id;}
+// Keep the loadout of the shown ship (only changed slots); a ship opened by a link is not stored.
+function keepFit(){if(!inst||inst===LINK) return; const f={}; for(const k in state) if(state[k]) f[k]=state[k];
+  if(Object.keys(f).length) DB.fit[inst]=f; else delete DB.fit[inst]; DB.last=inst; persist();}
+function loadFit(id){return STATE[id]||(STATE[id]={...(DB.fit[id]||{})});}
 
 /* ---------- slots ---------- */
 function stock(s){return s.default;}
@@ -270,7 +298,7 @@ function sideTxt(s){return [s.side==='L'?T('links','left'):s.side==='R'?T('recht
 
 /* ---------- link ---------- */
 function readHash(){try{const p=new URLSearchParams(location.hash.slice(1)); const slug=p.get('kp'); if(!slug) return false;
-  ship=KP.ships.find(x=>x.slug===slug)||KP.ships[0]; state=STATE[ship.slug]={};
+  ship=KP.ships.find(x=>x.slug===slug)||KP.ships[0]; state=STATE[LINK]={};
   for(const [k,u] of p) if(k!=='kp'&&byKey[u]) state[k]=u; return true;}catch(e){return false;}}
 function writeHash(){const p=new URLSearchParams({kp:ship.slug}); for(const s of SL) if(state[s.id]&&state[s.id]!==stock(s)) p.set(s.id,state[s.id]);
   history.replaceState(null,'','#'+p);}
@@ -413,42 +441,59 @@ $k('copylink').addEventListener('click',async e=>{const b=e.currentTarget, t=b.i
   try{await navigator.clipboard.writeText(location.href); b.textContent=T('Link kopiert ✓','Link copied ✓');}catch(err){b.textContent=T('Kopieren nicht möglich, Adresse aus der Adresszeile nehmen','Copy failed, take the address bar URL');}
   setTimeout(()=>{b.innerHTML=t;},1800);});
 $k('ships').addEventListener('click',e=>{
-  if(e.target.closest('#kp-linkadd')){DB.mine.push(linkShip); linkShip=null; persist(); renderShips(); return;}
-  const b=e.target.closest('button[data-slug]'); if(!b||b.dataset.slug===ship.slug) return; show(b.dataset.slug);});
-// Switch to a ship with its saved (or linked) loadout.
-function show(slug){if(open) closeDrawer(); ship=KP.ships.find(x=>x.slug===slug); state=loadFit(slug);
-  DB.last=slug; persist(); setup(); drawShip(); render(); writeHash();}
-// Buttons for my ships; a linked ship that is not one of mine is shown dashed with an "add" button.
+  // "+ add to my ships": the linked ship becomes a fleet entry and keeps the link's loadout.
+  if(e.target.closest('#kp-linkadd')){const id=newId(linkSlug); DB.fleet.push({id,slug:linkSlug,name:''}); STATE[id]={...STATE[LINK]};
+    linkSlug=null; show(id); keepFit(); return;}
+  const b=e.target.closest('button[data-id]'); if(!b||b.dataset.id===inst) return; show(b.dataset.id);});
+// Switch to a fleet entry (or the linked ship) with its own loadout.
+function show(id){if(open) closeDrawer(); inst=id;
+  if(id===LINK){ship=model(linkSlug); state=STATE[LINK];} else {ship=model(fleetEntry(id).slug); state=loadFit(id); DB.last=id; persist();}
+  setup(); drawShip(); render(); writeHash();}
+// Buttons of my fleet; a linked ship is shown dashed with an "add" button next to it.
 function renderShips(){
-  const list=mine(); const extra=linkShip&&!DB.mine.includes(linkShip)?KP.ships.find(x=>x.slug===linkShip):null;
-  $k('ships').innerHTML=list.map(x=>`<button type="button" data-slug="${x.slug}" aria-pressed="${x.slug===ship.slug}">${esc(x.short)}</button>`).join('')
-    +(extra?`<button type="button" class="link" data-slug="${extra.slug}" aria-pressed="${extra.slug===ship.slug}" title="${esc(T('aus dem Link','from the link'))}">${esc(extra.short)}</button><button type="button" class="btn kp-linkadd" id="kp-linkadd">+ ${T('zu meinen Schiffen','add to my ships')}</button>`:'');
-  const none=!list.length&&!extra; $k('none').hidden=!none; $k('body').hidden=none;
+  const btn=(id,lab,cls)=>`<button type="button"${cls?` class="${cls}"`:''} data-id="${esc(id)}" aria-pressed="${id===inst}"${cls?` title="${esc(T('aus dem Link','from the link'))}"`:''}>${esc(lab)}</button>`;
+  $k('ships').innerHTML=DB.fleet.map(f=>btn(f.id,label(f),'')).join('')
+    +(linkSlug?btn(LINK,model(linkSlug).short,'link')+`<button type="button" class="btn kp-linkadd" id="kp-linkadd">+ ${T('zu meinen Schiffen','add to my ships')}</button>`:'');
+  const none=!DB.fleet.length&&!linkSlug; $k('none').hidden=!none; $k('body').hidden=none;
 }
-// "My ships" dialog: grouped by manufacturer, with search; every tick is saved at once.
+// "My ships" dialog: the fleet (rename, remove) and all models to add, grouped by manufacturer, with search.
+function renderFleet(){
+  $k('fleet').innerHTML=DB.fleet.length?DB.fleet.map(f=>{const m=model(f.slug);
+    return `<div class="kp-frow"><input type="text" data-name="${esc(f.id)}" value="${esc(f.name)}" placeholder="${esc(label(f,true))}" aria-label="${esc(T('Name für','Name for')+' '+m.name)}" maxlength="40">
+      <button type="button" class="btn kp-del" data-del="${esc(f.id)}">${T('Entfernen','Remove')}</button><small>${esc(m.name)}${DB.fit[f.id]?' · '+T('eigene Bestückung','own loadout'):''}</small></div>`;}).join('')
+    :`<p class="kp-empty">${T('Noch keine Schiffe. Füg unten eins hinzu.','No ships yet. Add one below.')}</p>`;
+  const n=DB.fleet.length; $k('minecount').textContent=T(`${n} ${n===1?'Schiff':'Schiffe'} in deiner Flotte`,`${n} ${n===1?'ship':'ships'} in your fleet`);
+}
 function renderMine(){
+  renderFleet();
   const q=$k('mineq').value.trim().toLowerCase(); const groups={};
   for(const x of KP.ships) if(!q||(x.name+' '+x.short+' '+x.maker).toLowerCase().includes(q)) (groups[x.maker||'–']=groups[x.maker||'–']||[]).push(x);
   const keys=Object.keys(groups).sort((a,b)=>a.localeCompare(b));
-  $k('minelist').innerHTML=keys.length?keys.map(m=>`<h4>${esc(m)}</h4>`+groups[m].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>
-    `<label><input type="checkbox" value="${x.slug}"${DB.mine.includes(x.slug)?' checked':''}> <span>${esc(x.name)}${x.short!==x.name?` <small>(${esc(x.short)})</small>`:''}</span></label>`).join('')).join('')
+  $k('minelist').innerHTML=keys.length?keys.map(m=>`<h4>${esc(m)}</h4>`+groups[m].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>{
+    const have=DB.fleet.filter(f=>f.slug===x.slug).length;
+    return `<div class="kp-mrow"><span>${esc(x.name)}${have?` <small>(${T(`${have} in der Flotte`,`${have} in fleet`)})</small>`:''}</span>
+      <button type="button" class="btn" data-add="${x.slug}" aria-label="${esc(T('Hinzufügen:','Add:')+' '+x.name)}">+ ${T('Hinzufügen','Add')}</button></div>`;}).join('')).join('')
     :`<p class="kp-empty">${T('Kein Schiff gefunden.','No ship found.')}</p>`;
-  const n=DB.mine.length; $k('minecount').textContent=T(`${n} von ${KP.ships.length} gewählt`,`${n} of ${KP.ships.length} chosen`);
 }
 function openMine(){$k('mineq').value=''; renderMine(); const d=$k('mine'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); $k('mineq').focus();}
 function closeMine(){const d=$k('mine'); if(d.close) d.close(); else d.removeAttribute('open');}
-$k('minelist').addEventListener('change',e=>{const c=e.target; if(c.type!=='checkbox') return;
-  DB.mine=c.checked?[...new Set([...DB.mine,c.value])]:DB.mine.filter(s=>s!==c.value);
-  // Keep the order of the ship list, so the buttons do not jump around.
-  DB.mine=KP.ships.map(x=>x.slug).filter(s=>DB.mine.includes(s)); persist(); renderMine();});
+$k('minelist').addEventListener('click',e=>{const b=e.target.closest('[data-add]'); if(!b) return;
+  DB.fleet.push({id:newId(b.dataset.add),slug:b.dataset.add,name:''}); persist(); renderMine();
+  $k('minecount').textContent+=' ✓';});
+$k('fleet').addEventListener('click',e=>{const b=e.target.closest('[data-del]'); if(!b) return; const f=fleetEntry(b.dataset.del);
+  // Removing a ship also removes its saved loadout, so ask when there is one.
+  if(DB.fit[f.id]&&!confirm(T(`„${label(f)}“ mit seiner Bestückung entfernen?`,`Remove "${label(f)}" with its loadout?`))) return;
+  DB.fleet=DB.fleet.filter(x=>x!==f); delete DB.fit[f.id]; delete STATE[f.id]; if(DB.last===f.id) DB.last=null; persist(); renderMine();});
+$k('fleet').addEventListener('input',e=>{const i=e.target.closest('[data-name]'); if(!i) return; const f=fleetEntry(i.dataset.name);
+  f.name=i.value.trim(); persist();});
 $k('mineq').addEventListener('input',renderMine);
 $k('mineok').addEventListener('click',closeMine); $k('minex').addEventListener('click',closeMine);
 $k('mine').addEventListener('close',afterMine);
 $k('minebtn').addEventListener('click',openMine); $k('nonebtn').addEventListener('click',openMine);
-// After the dialog: stay on the current ship if it is still mine (or linked), else go to the first of mine.
+// After the dialog: stay on the shown ship if it is still in the fleet (or linked), else go to the first ship.
 function afterMine(){
-  if(DB.mine.includes(ship.slug)||ship.slug===linkShip){renderShips(); return;}
-  const first=mine()[0]; if(first) show(first.slug); else renderShips();
+  if(inst===LINK||fleetEntry(inst)){renderShips(); return;}
+  if(DB.fleet[0]) show(DB.fleet[0].id); else {inst=null; renderShips();}
 }
 // Follow the page language (set by the header switch).
 new MutationObserver(()=>{render(); if(open) openDrawer(open.id); drawShip(); requestAnimationFrame(wires);}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
@@ -457,8 +502,8 @@ new ResizeObserver(()=>requestAnimationFrame(wires)).observe($k('stage'));
 
 /* ---------- start ---------- */
 const fromLink=readHash();
-if(fromLink){if(!DB.mine.includes(ship.slug)) linkShip=ship.slug;}
-else{ship=KP.ships.find(x=>x.slug===DB.last&&DB.mine.includes(x.slug))||mine()[0]||KP.ships[0]; state=loadFit(ship.slug);}
+if(fromLink){linkSlug=ship.slug; inst=LINK;}
+else{const f=fleetEntry(DB.last)||DB.fleet[0]; if(f){inst=f.id; ship=model(f.slug); state=loadFit(f.id);} else state={};}
 setup(); drawShip(); render();
 // A loadout link opens the tab (S and the page's render() are the ship list's).
 if(fromLink){S.view='kp'; window.render();}
