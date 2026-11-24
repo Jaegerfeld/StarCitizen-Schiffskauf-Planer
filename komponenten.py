@@ -311,6 +311,32 @@ def extra_slot(slug: str, v: dict, port: str, typ: str, siblings: list[str],
     return slot, [entry(it) for it in found.values()]
 
 
+def attach_uex(data: dict, vehicles: list[dict]) -> list[str]:
+    """Add the UEX vehicle id and full name to every ship, matched by name.
+
+    The UEX id is the model key of the shared fleet (flotte.py) that the cargo
+    ledger of the Handels-Planer uses as well.
+
+    Args:
+        data: Result of :func:`build`; changed in place (``uex``, ``model`` per ship).
+        vehicles: UEX ``vehicles`` records of this build.
+
+    Returns:
+        Names of ships without a UEX match (their ``uex`` is None).
+    """
+    by = {}
+    for v in vehicles:
+        by.setdefault((v.get("name") or "").lower(), v)
+    missing = []
+    for s in data["ships"]:
+        v = by.get(s["name"].lower())
+        s["uex"] = v["id"] if v else None
+        s["model"] = (v.get("name_full") or v.get("name")) if v else s["name"]
+        if not v:
+            missing.append(s["name"])
+    return missing
+
+
 def build(use_cache: bool = False) -> dict:
     """Build the data of the components tab for all ships.
 

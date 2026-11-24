@@ -41,6 +41,7 @@ from datetime import datetime, timezone
 import komponenten as kp
 import kopfzeile as kz
 import sc_design as sd
+from flotte import FLOTTE_JS
 from komponenten_seite import KP_CSS, KP_HTML, KP_JS
 from version import VERSION
 
@@ -287,20 +288,25 @@ def main(argv):
         Exit code: 0 on success, 1 if UEX is unreachable or its data is implausible.
     """
     try:
-        data = build_data(load_raw("--cache" in argv))
+        raw = load_raw("--cache" in argv)
+        data = build_data(raw)
     except Exception as e:  # noqa: BLE001
         print(f"FEHLER: UEX-Daten nicht verfügbar: {e}", file=sys.stderr)
         return 1
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     try:
         kp_data = kp.build(use_cache="--cache" in argv)
+        missing = kp.attach_uex(kp_data, raw["vehicles"])
+        if missing:
+            print(f"WARNUNG: ohne UEX-Zuordnung (nicht in der gemeinsamen Flotte): {', '.join(missing)}",
+                  file=sys.stderr)
     except Exception as e:  # noqa: BLE001 - the page must still build without the tab
         print(f"WARNUNG: Komponentendaten (Wiki-API) nicht verfügbar: {e}", file=sys.stderr)
         kp_data = None
     kp_json = json.dumps(kp_data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     html = fill_header(bilingual(HTML_TEMPLATE))
     html = (html.replace("/*KP_CSS*/", KP_CSS).replace("<!--KP_PANEL-->", KP_HTML)
-                .replace("/*KP_JS*/", KP_JS.replace("/*__KP__*/null", kp_json)))
+                .replace("/*KP_JS*/", FLOTTE_JS + KP_JS.replace("/*__KP__*/null", kp_json)))
     html = html.replace("/*__DATA__*/{}", payload).replace("__DATA_URL__", DATA_URL)
     OUT_HTML.write_text(html, encoding="utf-8")
     OUT_JSON.write_text(payload, encoding="utf-8")

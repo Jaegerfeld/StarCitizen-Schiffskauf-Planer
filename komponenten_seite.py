@@ -20,8 +20,9 @@
 #   Filter, Liste und Merkliste aus. Oben stehen nur die Schiffe der eigenen
 #   Flotte aus dem Dialog „Meine Schiffe“; ein Modell darf mehrfach vorkommen
 #   (z. B. zwei Hornets), jedes Schiff hat einen Namen und seine eigene
-#   Bestückung. Flotte und Bestückungen speichert der Browser (localStorage,
-#   Schlüssel scsk_kp; der Stand mit einem Haken je Modell wird übernommen). Die
+#   Bestückung. Die Flotte ist die gemeinsame der SC-Tools (flotte.py, auch im
+#   Fracht-Logbuch des Handels-Planers); die Bestückungen speichert dieser
+#   Reiter unter scsk_kp. Ältere Stände dieses Reiters werden übernommen. Die
 #   Bestückung steckt zusätzlich im Link (#kp=<schiff>&<platz>=<teil>); ein
 #   Link hat Vorrang, gespeichert wird erst, wenn der Spieler etwas ändert.
 # =============================================================================
@@ -254,23 +255,31 @@ const fmt=n=>n==null?'–':(typeof n==='number'?n.toLocaleString(L()==='en'?'en-
 const STATE={};
 let ship=KP.ships[0], state={}, BASE=[], SL=[], ANC={}, open=null;
 
-/* ---------- my fleet and saved loadouts (browser only) ---------- */
-// {v:2, fleet:[{id,slug,name}], fit:{id:{slotId:uuid}}, last:id}. A model may occur several times;
-// every fleet entry has its own loadout. Blocked storage simply means nothing is kept.
+/* ---------- my fleet (shared, flotte.py) and saved loadouts (browser only) ---------- */
+// The fleet is the shared one of the SC tools (SCFleet: id, UEX model id, own name). This tab keeps
+// {v:3, fit:{shipId:{slotId:uuid}}, last:shipId}. Blocked storage simply means nothing is kept.
 const KEY='scsk_kp', LINK='__link';
 const model=slug=>KP.ships.find(x=>x.slug===slug);
-const DB=(()=>{const d=load(KEY)||{}, ok=f=>f&&model(f.slug);
-  if(Array.isArray(d.fleet)) return {v:2,fleet:d.fleet.filter(ok),fit:d.fit||{},last:d.last||null};
-  // Version 1 kept one ship per model under its slug: each becomes one fleet entry with that id, so its loadout stays.
-  return {v:2,fleet:(d.mine||[]).map(s=>({id:s,slug:s,name:''})).filter(ok),fit:d.fit||{},last:d.last||null};})();
+const byUex={}; for(const x of KP.ships) if(x.uex!=null) byUex[x.uex]=x;
+const DB=(()=>{const d=load(KEY)||{}, db={v:3,fit:d.fit||{},last:d.last||null};
+  // Earlier stands of this tab kept their own ship list (v1: one tick per model, v2: fleet); move it into the shared fleet once.
+  const old=Array.isArray(d.fleet)?d.fleet:(d.mine||[]).map(s=>({id:s,slug:s,name:''}));
+  const add=old.map(f=>({f,m:model(f.slug)})).filter(x=>x.m&&x.m.uex!=null).map(({f,m})=>({id:f.id,uex:m.uex,model:m.model,name:f.name||''}));
+  if(add.length) SCFleet.upsertMany(add);
+  if(old.length) save(KEY,db);
+  return db;})();
 let inst=null, linkSlug=null;   // shown fleet entry (or LINK) and the model of a ship opened by a link
 const persist=()=>save(KEY,DB);
-const fleetEntry=id=>DB.fleet.find(f=>f.id===id);
-// Button label: own name, else the model's short name, numbered when the model occurs more than once.
-function label(f,noName){if(f.name&&!noName) return f.name; const m=model(f.slug).short, same=DB.fleet.filter(x=>x.slug===f.slug);
-  return same.length>1?`${m} #${same.indexOf(f)+1}`:m;}
-// New id for one more ship of a model: the slug for the first, then slug~2, slug~3 …
-function newId(slug){let i=1,id=slug; while(fleetEntry(id)) id=`${slug}~${++i}`; return id;}
+const fleetAll=()=>SCFleet.read().ships;
+const slugOf=f=>f&&byUex[f.uex]?byUex[f.uex].slug:null;
+// Ships this tab can plan (model with a top view); the others are listed in the dialog only.
+const fleet=()=>fleetAll().filter(slugOf);
+const fleetEntry=id=>fleetAll().find(f=>f.id===id);
+// Label: own name, else the model's short name, numbered when the model occurs more than once in the fleet.
+function label(f,noName){if(f.name&&!noName) return f.name; const m=byUex[f.uex]?.short||f.model, same=fleetAll().filter(x=>x.uex===f.uex);
+  return same.length>1?`${m} #${same.findIndex(x=>x.id===f.id)+1}`:m;}
+// New id for one more ship of a model: the slug for the first, then slug~2 …; ids of removed ships are not reused.
+function newId(slug){const o=SCFleet.read(); let i=1,id=slug; while(o.ships.some(f=>f.id===id)||o.del.includes(id)) id=`${slug}~${++i}`; return id;}
 // Keep the loadout of the shown ship (only changed slots); a ship opened by a link is not stored.
 function keepFit(){if(!inst||inst===LINK) return; const f={}; for(const k in state) if(state[k]) f[k]=state[k];
   if(Object.keys(f).length) DB.fit[inst]=f; else delete DB.fit[inst]; DB.last=inst; persist();}
@@ -442,59 +451,65 @@ $k('copylink').addEventListener('click',async e=>{const b=e.currentTarget, t=b.i
   setTimeout(()=>{b.innerHTML=t;},1800);});
 $k('ships').addEventListener('click',e=>{
   // "+ add to my ships": the linked ship becomes a fleet entry and keeps the link's loadout.
-  if(e.target.closest('#kp-linkadd')){const id=newId(linkSlug); DB.fleet.push({id,slug:linkSlug,name:''}); STATE[id]={...STATE[LINK]};
-    linkSlug=null; show(id); keepFit(); return;}
+  if(e.target.closest('#kp-linkadd')){const m=model(linkSlug), id=newId(linkSlug);
+    SCFleet.upsert({id,uex:m.uex,model:m.model,name:''}); STATE[id]={...STATE[LINK]}; linkSlug=null; show(id); keepFit(); return;}
   const b=e.target.closest('button[data-id]'); if(!b||b.dataset.id===inst) return; show(b.dataset.id);});
 // Switch to a fleet entry (or the linked ship) with its own loadout.
 function show(id){if(open) closeDrawer(); inst=id;
-  if(id===LINK){ship=model(linkSlug); state=STATE[LINK];} else {ship=model(fleetEntry(id).slug); state=loadFit(id); DB.last=id; persist();}
+  if(id===LINK){ship=model(linkSlug); state=STATE[LINK];} else {ship=model(slugOf(fleetEntry(id))); state=loadFit(id); DB.last=id; persist();}
   setup(); drawShip(); render(); writeHash();}
 // Buttons of my fleet; a linked ship is shown dashed with an "add" button next to it.
 function renderShips(){
   const btn=(id,lab,cls)=>`<button type="button"${cls?` class="${cls}"`:''} data-id="${esc(id)}" aria-pressed="${id===inst}"${cls?` title="${esc(T('aus dem Link','from the link'))}"`:''}>${esc(lab)}</button>`;
-  $k('ships').innerHTML=DB.fleet.map(f=>btn(f.id,label(f),'')).join('')
-    +(linkSlug?btn(LINK,model(linkSlug).short,'link')+`<button type="button" class="btn kp-linkadd" id="kp-linkadd">+ ${T('zu meinen Schiffen','add to my ships')}</button>`:'');
-  const none=!DB.fleet.length&&!linkSlug; $k('none').hidden=!none; $k('body').hidden=none;
+  const fl=fleet(), lm=linkSlug?model(linkSlug):null;
+  $k('ships').innerHTML=fl.map(f=>btn(f.id,label(f),'')).join('')
+    +(lm?btn(LINK,lm.short,'link')+(lm.uex!=null?`<button type="button" class="btn kp-linkadd" id="kp-linkadd">+ ${T('zu meinen Schiffen','add to my ships')}</button>`:''):'');
+  const none=!fl.length&&!linkSlug; $k('none').hidden=!none; $k('body').hidden=none;
 }
-// "My ships" dialog: the fleet (rename, remove) and all models to add, grouped by manufacturer, with search.
+// "My ships" dialog: the whole shared fleet (rename, remove) and the models of this tab to add.
 function renderFleet(){
-  $k('fleet').innerHTML=DB.fleet.length?DB.fleet.map(f=>{const m=model(f.slug);
-    return `<div class="kp-frow"><input type="text" data-name="${esc(f.id)}" value="${esc(f.name)}" placeholder="${esc(label(f,true))}" aria-label="${esc(T('Name für','Name for')+' '+m.name)}" maxlength="40">
-      <button type="button" class="btn kp-del" data-del="${esc(f.id)}">${T('Entfernen','Remove')}</button><small>${esc(m.name)}${DB.fit[f.id]?' · '+T('eigene Bestückung','own loadout'):''}</small></div>`;}).join('')
+  const all=fleetAll();
+  $k('fleet').innerHTML=all.length?all.map(f=>{const m=byUex[f.uex], cargo=SCFleet.cargoPosts(f.id);
+    const notes=[m?'':T('noch nicht im Komponenten-Planer','not in the component planner yet'),DB.fit[f.id]?T('eigene Bestückung','own loadout'):'',cargo?T('Fracht an Bord (Logbuch)','cargo aboard (ledger)'):''].filter(Boolean);
+    return `<div class="kp-frow"><input type="text" data-name="${esc(f.id)}" value="${esc(f.name)}" placeholder="${esc(label(f,true))}" aria-label="${esc(T('Name für','Name for')+' '+(m?.name||f.model))}" maxlength="40">
+      <button type="button" class="btn kp-del" data-del="${esc(f.id)}">${T('Entfernen','Remove')}</button><small>${esc(f.model||m?.name||'')}${notes.length?' · '+notes.join(' · '):''}</small></div>`;}).join('')
     :`<p class="kp-empty">${T('Noch keine Schiffe. Füg unten eins hinzu.','No ships yet. Add one below.')}</p>`;
-  const n=DB.fleet.length; $k('minecount').textContent=T(`${n} ${n===1?'Schiff':'Schiffe'} in deiner Flotte`,`${n} ${n===1?'ship':'ships'} in your fleet`);
+  const n=all.length; $k('minecount').textContent=T(`${n} ${n===1?'Schiff':'Schiffe'} in deiner Flotte`,`${n} ${n===1?'ship':'ships'} in your fleet`);
 }
 function renderMine(){
   renderFleet();
-  const q=$k('mineq').value.trim().toLowerCase(); const groups={};
-  for(const x of KP.ships) if(!q||(x.name+' '+x.short+' '+x.maker).toLowerCase().includes(q)) (groups[x.maker||'–']=groups[x.maker||'–']||[]).push(x);
+  const q=$k('mineq').value.trim().toLowerCase(); const groups={}, all=fleetAll();
+  for(const x of KP.ships) if(x.uex!=null&&(!q||(x.name+' '+x.short+' '+x.maker).toLowerCase().includes(q))) (groups[x.maker||'–']=groups[x.maker||'–']||[]).push(x);
   const keys=Object.keys(groups).sort((a,b)=>a.localeCompare(b));
   $k('minelist').innerHTML=keys.length?keys.map(m=>`<h4>${esc(m)}</h4>`+groups[m].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>{
-    const have=DB.fleet.filter(f=>f.slug===x.slug).length;
+    const have=all.filter(f=>f.uex===x.uex).length;
     return `<div class="kp-mrow"><span>${esc(x.name)}${have?` <small>(${T(`${have} in der Flotte`,`${have} in fleet`)})</small>`:''}</span>
       <button type="button" class="btn" data-add="${x.slug}" aria-label="${esc(T('Hinzufügen:','Add:')+' '+x.name)}">+ ${T('Hinzufügen','Add')}</button></div>`;}).join('')).join('')
     :`<p class="kp-empty">${T('Kein Schiff gefunden.','No ship found.')}</p>`;
 }
 function openMine(){$k('mineq').value=''; renderMine(); const d=$k('mine'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); $k('mineq').focus();}
 function closeMine(){const d=$k('mine'); if(d.close) d.close(); else d.removeAttribute('open');}
-$k('minelist').addEventListener('click',e=>{const b=e.target.closest('[data-add]'); if(!b) return;
-  DB.fleet.push({id:newId(b.dataset.add),slug:b.dataset.add,name:''}); persist(); renderMine();
-  $k('minecount').textContent+=' ✓';});
-$k('fleet').addEventListener('click',e=>{const b=e.target.closest('[data-del]'); if(!b) return; const f=fleetEntry(b.dataset.del);
-  // Removing a ship also removes its saved loadout, so ask when there is one.
-  if(DB.fit[f.id]&&!confirm(T(`„${label(f)}“ mit seiner Bestückung entfernen?`,`Remove "${label(f)}" with its loadout?`))) return;
-  DB.fleet=DB.fleet.filter(x=>x!==f); delete DB.fit[f.id]; delete STATE[f.id]; if(DB.last===f.id) DB.last=null; persist(); renderMine();});
+$k('minelist').addEventListener('click',e=>{const b=e.target.closest('[data-add]'); if(!b) return; const m=model(b.dataset.add);
+  SCFleet.upsert({id:newId(m.slug),uex:m.uex,model:m.model,name:''}); renderMine(); $k('minecount').textContent+=' ✓';});
+$k('fleet').addEventListener('click',e=>{const b=e.target.closest('[data-del]'); if(!b) return; const f=fleetEntry(b.dataset.del); if(!f) return;
+  // Cargo aboard (cargo ledger) blocks removing: the cargo would lose its place.
+  if(SCFleet.cargoPosts(f.id)){alert(T(`„${label(f)}“ hat im Fracht-Logbuch noch Fracht an Bord. Buch sie dort zuerst aus oder verschieb sie, dann kannst du das Schiff entfernen.`,`"${label(f)}" still has cargo aboard in the cargo ledger. Book it out or move it there first, then you can remove the ship.`)); return;}
+  const fit=DB.fit[f.id]?T(' Seine Bestückung hier geht verloren.',' Its loadout here is lost.'):'';
+  if(!confirm(T(`„${label(f)}“ aus deiner Flotte entfernen? Es verschwindet auch aus dem Fracht-Logbuch.${fit}`,`Remove "${label(f)}" from your fleet? It also disappears from the cargo ledger.${fit}`))) return;
+  SCFleet.remove(f.id); delete DB.fit[f.id]; delete STATE[f.id]; if(DB.last===f.id) DB.last=null; persist(); renderMine();});
 $k('fleet').addEventListener('input',e=>{const i=e.target.closest('[data-name]'); if(!i) return; const f=fleetEntry(i.dataset.name);
-  f.name=i.value.trim(); persist();});
+  if(f) SCFleet.upsert({...f,name:i.value});});
 $k('mineq').addEventListener('input',renderMine);
 $k('mineok').addEventListener('click',closeMine); $k('minex').addEventListener('click',closeMine);
 $k('mine').addEventListener('close',afterMine);
 $k('minebtn').addEventListener('click',openMine); $k('nonebtn').addEventListener('click',openMine);
-// After the dialog: stay on the shown ship if it is still in the fleet (or linked), else go to the first ship.
+// After a fleet change: stay on the shown ship if it is still plannable (or linked), else go to the first ship.
 function afterMine(){
-  if(inst===LINK||fleetEntry(inst)){renderShips(); return;}
-  if(DB.fleet[0]) show(DB.fleet[0].id); else {inst=null; renderShips();}
+  if(inst===LINK||slugOf(fleetEntry(inst))){renderShips(); return;}
+  const f=fleet()[0]; if(f) show(f.id); else {inst=null; renderShips();}
 }
+// The cargo ledger (or another tab) changed the fleet: refresh buttons and an open dialog.
+SCFleet.onChange(()=>{if($k('mine').open) renderFleet(); afterMine();});
 // Follow the page language (set by the header switch).
 new MutationObserver(()=>{render(); if(open) openDrawer(open.id); drawShip(); requestAnimationFrame(wires);}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
 // The panel starts hidden: redraw the lines whenever it gets a size (tab shown, window resized).
@@ -503,7 +518,7 @@ new ResizeObserver(()=>requestAnimationFrame(wires)).observe($k('stage'));
 /* ---------- start ---------- */
 const fromLink=readHash();
 if(fromLink){linkSlug=ship.slug; inst=LINK;}
-else{const f=fleetEntry(DB.last)||DB.fleet[0]; if(f){inst=f.id; ship=model(f.slug); state=loadFit(f.id);} else state={};}
+else{const fl=fleet(), f=fl.find(x=>x.id===DB.last)||fl[0]; if(f){inst=f.id; ship=model(slugOf(f)); state=loadFit(f.id);} else state={};}
 setup(); drawShip(); render();
 // A loadout link opens the tab (S and the page's render() are the ship list's).
 if(fromLink){S.view='kp'; window.render();}

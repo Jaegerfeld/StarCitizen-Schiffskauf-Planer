@@ -28,7 +28,7 @@ The planner shows you where each ship sold in game is cheapest and what is sold 
 - The data line in the header shows the number of vehicles and locations, the game version, the period of the price reports and the build time.
 - **Load latest build (GitHub)** fetches the data that is rebuilt every day. You need an internet connection for this.
 - Your browser stores locally (localStorage): language, colour scheme, filters, wishlist and the most recently loaded data. None of it is sent to a server.
-- In the **Components** tab the browser also stores your choice of ships and the loadout per ship. To take it along or share it, use the link.
+- In the **Components** tab the browser also stores your fleet and the loadout per ship. Online it shares the fleet with the cargo ledger of the Trade Planner: one ship, one name, in both tools. To take it along or share it, use the link.
 - Offline: download `SC_Schiffskauf_Planer.html` from the [repository](https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer) and open the file with a double-click. **Load latest build (GitHub)** also works there when you are online.
 
 ## Tutorial: Buy a ship

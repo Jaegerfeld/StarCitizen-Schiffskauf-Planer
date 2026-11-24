@@ -28,7 +28,7 @@ Der Planer zeigt dir, wo jedes ingame kaufbare Schiff am günstigsten ist und wa
 - Die Datenzeile in der Kopfzeile zeigt Anzahl der Fahrzeuge und Standorte, den Spielstand, den Zeitraum der Preismeldungen und die Bauzeit.
 - **Neuesten Stand laden (GitHub)** holt die täglich neu gebauten Daten. Dafür brauchst du Internet.
 - Dein Browser speichert lokal (localStorage): Sprache, Farbschema, Filter, Merkliste und die zuletzt geladenen Daten. Nichts davon geht an einen Server.
-- Im Reiter **Komponenten** speichert der Browser auch deine Schiffsauswahl und die Bestückung je Schiff. Zum Mitnehmen oder Teilen gibt es den Link.
+- Im Reiter **Komponenten** speichert der Browser auch deine Flotte und die Bestückung je Schiff. Die Flotte teilt er online mit dem Fracht-Logbuch des Handels-Planers: ein Schiff, ein Name, in beiden Tools. Zum Mitnehmen oder Teilen gibt es den Link.
 - Offline: Lade `SC_Schiffskauf_Planer.html` aus dem [Repository](https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer) herunter und öffne die Datei per Doppelklick. Auch dort funktioniert **Neuesten Stand laden (GitHub)**, wenn du online bist.
 
 ## Tutorial: Schiff kaufen
