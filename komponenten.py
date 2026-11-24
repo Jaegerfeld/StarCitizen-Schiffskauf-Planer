@@ -178,12 +178,12 @@ def _mounts_text(it: dict) -> str | None:
 
 
 def _weapon(it: dict, use: float | None) -> dict:
-    """Damage per second, range and power draw of a gun."""
+    """Damage per second, alpha damage (one shot), range and power draw of a gun."""
     w = it.get("vehicle_weapon") or {}
     dmg = sum(d.get("damage") or 0 for d in (w.get("damages") or [])) or w.get("damage_per_shot") or 0
     rpm = w.get("rpm") or 0
-    return {"dps": round(dmg * rpm / 60) if dmg and rpm else None, "range": w.get("range"),
-            "pwr": use}
+    return {"dps": round(dmg * rpm / 60) if dmg and rpm else None,
+            "alpha": round(dmg, 1) if dmg else None, "range": w.get("range"), "pwr": use}
 
 
 def _rack(it: dict) -> dict:
@@ -311,6 +311,32 @@ def extra_slot(slug: str, v: dict, port: str, typ: str, siblings: list[str],
     return slot, [entry(it) for it in found.values()]
 
 
+def attach_uex(data: dict, vehicles: list[dict]) -> list[str]:
+    """Add the UEX vehicle id and full name to every ship, matched by name.
+
+    The UEX id is the model key of the shared fleet (flotte.py) that the cargo
+    ledger of the Handels-Planer uses as well.
+
+    Args:
+        data: Result of :func:`build`; changed in place (``uex``, ``model`` per ship).
+        vehicles: UEX ``vehicles`` records of this build.
+
+    Returns:
+        Names of ships without a UEX match (their ``uex`` is None).
+    """
+    by = {}
+    for v in vehicles:
+        by.setdefault((v.get("name") or "").lower(), v)
+    missing = []
+    for s in data["ships"]:
+        v = by.get(s["name"].lower())
+        s["uex"] = v["id"] if v else None
+        s["model"] = (v.get("name_full") or v.get("name")) if v else s["name"]
+        if not v:
+            missing.append(s["name"])
+    return missing
+
+
 def build(use_cache: bool = False) -> dict:
     """Build the data of the components tab for all ships.
 
@@ -338,7 +364,8 @@ def build(use_cache: bool = False) -> dict:
             sl.append(s)
             cat[s["cat"]] = c
         sil = cfg["sil"]()
-        ships.append({"slug": slug, "short": cfg["short"], "name": v["name"], "sil": sil,
+        ships.append({"slug": slug, "short": cfg["short"], "name": v["name"],
+                      "maker": (v.get("manufacturer") or {}).get("name") or "", "sil": sil,
                       "anch": cfg["anch"], "panch": cfg["panch"], "slots": sl})
     # Catalogs of the sub-mounts (weapons in turrets, missiles in racks).
     for c in list(cat.values()):

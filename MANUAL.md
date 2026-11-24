@@ -28,7 +28,7 @@ The planner shows you where each ship sold in game is cheapest and what is sold 
 - The data line in the header shows the number of vehicles and locations, the game version, the period of the price reports and the build time.
 - **Load latest build (GitHub)** fetches the data that is rebuilt every day. You need an internet connection for this.
 - Your browser stores locally (localStorage): language, colour scheme, filters, wishlist and the most recently loaded data. None of it is sent to a server.
-- The browser does not store the loadout from the **Components** tab. It is kept only in the link.
+- In the **Components** tab the browser also stores your fleet and the loadout per ship. Online it shares the fleet with the cargo ledger of the Trade Planner: one ship, one name, in both tools. To take it along or share it, use the link.
 - Offline: download `SC_Schiffskauf_Planer.html` from the [repository](https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer) and open the file with a double-click. **Load latest build (GitHub)** also works there when you are online.
 
 ## Tutorial: Buy a ship
@@ -60,15 +60,15 @@ Goal: you pick two ships, set a budget and find out where to buy them for the lo
 Goal: you fit a different shield to the Hornet Mk II and find out where to buy it.
 
 1. Open the **Components** tab. Filters, list and wishlist are hidden here.
-2. Choose the ship at the top, for example **Hornet Mk II**.
+2. Click **My ships …** (the first time **Choose ships**), add your ships with **+ Add**, for example the **F7C Hornet Mk II**, and click **Done**. Only your ships now appear at the top as buttons; use them to switch. If you own a model twice, add it twice: every ship has its own loadout, and under **Your fleet** you can give it a name.
 3. In the middle you see a top view. Around it are cards for each slot, with type, size (`S1`, `S2` …) and the fitted part. Lines lead to the mounting point.
 4. Click a card of type **Shield**. A selection opens on the right with all parts that fit this slot.
 5. Each row shows name, price, shop and the values. The numbers with + or - are the difference to the stock part. The tags **Stock** and **fitted** show what comes from the factory and what is fitted right now.
 6. Click a part to fit it. The card then shows **changed**.
 7. Close the selection with **Close**, the × at the top right, Esc, a second click on the same card or a click next to it.
-8. Check the totals above the top view: **Total shield HP**, **Weapon damage/s**, **Total missile damage**, **Cooling** and the power balance (output / draw). Arrows show the difference to the stock loadout. **⚠ too little** means the power plant delivers less than the parts need.
+8. Check the totals above the top view: **Total shield HP**, **Weapon damage/s**, **Total alpha damage**, **Total missile damage**, **Cooling** and the power balance (output / draw). Arrows show the difference to the stock loadout. **⚠ too little** means the power plant delivers less than the parts need.
 9. Scroll to the **Shopping list**. For each swapped part it names the cheapest shop with its star system and the price. **all … shops** expands all shops with price and date of the price report.
-10. Click **Copy link to this loadout** and keep the link. With it you can open the loadout again later or share it.
+10. The browser remembers your loadout by itself. To share it or use another device, click **Copy link to this loadout**.
 
 ### Tips
 
@@ -96,7 +96,7 @@ Goal: you fit a different shield to the Hornet Mk II and find out where to buy i
 
 ### I don't see my data on another device.
 
-- Wishlist and filters live only in the browser where you created them. You take a loadout from **Components** with you as a link.
+- Wishlist, filters, your ships and loadouts live only in the browser where you created them. You take a loadout from **Components** with you as a link.
 
 ### What does "Load latest build (GitHub)" do?
 
