@@ -178,12 +178,12 @@ def _mounts_text(it: dict) -> str | None:
 
 
 def _weapon(it: dict, use: float | None) -> dict:
-    """Damage per second, range and power draw of a gun."""
+    """Damage per second, alpha damage (one shot), range and power draw of a gun."""
     w = it.get("vehicle_weapon") or {}
     dmg = sum(d.get("damage") or 0 for d in (w.get("damages") or [])) or w.get("damage_per_shot") or 0
     rpm = w.get("rpm") or 0
-    return {"dps": round(dmg * rpm / 60) if dmg and rpm else None, "range": w.get("range"),
-            "pwr": use}
+    return {"dps": round(dmg * rpm / 60) if dmg and rpm else None,
+            "alpha": round(dmg, 1) if dmg else None, "range": w.get("range"), "pwr": use}
 
 
 def _rack(it: dict) -> dict:
@@ -338,7 +338,8 @@ def build(use_cache: bool = False) -> dict:
             sl.append(s)
             cat[s["cat"]] = c
         sil = cfg["sil"]()
-        ships.append({"slug": slug, "short": cfg["short"], "name": v["name"], "sil": sil,
+        ships.append({"slug": slug, "short": cfg["short"], "name": v["name"],
+                      "maker": (v.get("manufacturer") or {}).get("name") or "", "sil": sil,
                       "anch": cfg["anch"], "panch": cfg["panch"], "slots": sl})
     # Catalogs of the sub-mounts (weapons in turrets, missiles in racks).
     for c in list(cat.values()):

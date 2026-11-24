@@ -28,7 +28,7 @@ Der Planer zeigt dir, wo jedes ingame kaufbare Schiff am günstigsten ist und wa
 - Die Datenzeile in der Kopfzeile zeigt Anzahl der Fahrzeuge und Standorte, den Spielstand, den Zeitraum der Preismeldungen und die Bauzeit.
 - **Neuesten Stand laden (GitHub)** holt die täglich neu gebauten Daten. Dafür brauchst du Internet.
 - Dein Browser speichert lokal (localStorage): Sprache, Farbschema, Filter, Merkliste und die zuletzt geladenen Daten. Nichts davon geht an einen Server.
-- Die Bestückung im Reiter **Komponenten** speichert der Browser nicht. Sie steckt nur im Link.
+- Im Reiter **Komponenten** speichert der Browser auch deine Schiffsauswahl und die Bestückung je Schiff. Zum Mitnehmen oder Teilen gibt es den Link.
 - Offline: Lade `SC_Schiffskauf_Planer.html` aus dem [Repository](https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer) herunter und öffne die Datei per Doppelklick. Auch dort funktioniert **Neuesten Stand laden (GitHub)**, wenn du online bist.
 
 ## Tutorial: Schiff kaufen
@@ -60,15 +60,15 @@ Ziel: Du suchst zwei Schiffe aus, legst ein Budget fest und findest heraus, wo d
 Ziel: Du baust bei der Hornet Mk II einen anderen Schild ein und findest heraus, wo du ihn kaufst.
 
 1. Öffne den Reiter **Komponenten**. Filter, Liste und Merkliste sind hier ausgeblendet.
-2. Wähl oben das Schiff, zum Beispiel **Hornet Mk II**.
+2. Klick auf **Meine Schiffe …** (beim ersten Mal auf **Schiffe wählen**), hak deine Schiffe an, zum Beispiel die **F7C Hornet Mk II**, und klick auf **Fertig**. Oben stehen jetzt nur deine Schiffe als Knöpfe; damit schaltest du um.
 3. In der Mitte siehst du eine Draufsicht. Rundum stehen Karten für jeden Steckplatz, mit Typ, Größe (`S1`, `S2` …) und dem verbauten Teil. Linien führen zum Einbauort.
 4. Klick auf eine Karte vom Typ **Schild**. Rechts öffnet sich eine Auswahl mit allen Teilen, die in diesen Steckplatz passen.
 5. Jede Zeile zeigt Name, Preis, Händler und die Werte. Die Zahlen mit + oder - sind der Unterschied zum Standardteil. Die Marken **Standard** und **verbaut** zeigen, was ab Werk drin ist und was gerade eingebaut ist.
 6. Klick auf ein Teil, um es einzubauen. Die Karte zeigt danach **geändert**.
 7. Schließ die Auswahl mit **Schließen**, mit dem × oben rechts, mit Esc, mit einem zweiten Klick auf dieselbe Karte oder mit einem Klick daneben.
-8. Prüf die Summen über der Draufsicht: **Schild-HP gesamt**, **Waffenschaden/s**, **Raketenschaden gesamt**, **Kühlung** und die Energiebilanz (erzeugt / Bedarf). Pfeile zeigen den Unterschied zum Werkszustand. **⚠ zu wenig** heißt, das Kraftwerk liefert weniger, als die Teile brauchen.
+8. Prüf die Summen über der Draufsicht: **Schild-HP gesamt**, **Waffenschaden/s**, **Alpha-Schaden gesamt**, **Raketenschaden gesamt**, **Kühlung** und die Energiebilanz (erzeugt / Bedarf). Pfeile zeigen den Unterschied zum Werkszustand. **⚠ zu wenig** heißt, das Kraftwerk liefert weniger, als die Teile brauchen.
 9. Scroll zur **Einkaufsliste**. Sie nennt für jedes getauschte Teil den günstigsten Händler mit Sternsystem und den Preis. Mit **alle … Händler** klappst du alle Händler mit Preis und Datum der Preismeldung auf.
-10. Klick auf **Link zu dieser Bestückung kopieren** und speichere den Link. Damit öffnest du die Bestückung später wieder oder teilst sie.
+10. Deine Bestückung merkt sich der Browser von selbst. Zum Teilen oder für ein anderes Gerät klick auf **Link zu dieser Bestückung kopieren**.
 
 ### Tipps
 
@@ -96,7 +96,7 @@ Ziel: Du baust bei der Hornet Mk II einen anderen Schild ein und findest heraus,
 
 ### Ich sehe meine Daten auf einem anderen Gerät nicht.
 
-- Merkliste und Filter liegen nur im Browser, in dem du sie angelegt hast. Eine Bestückung aus **Komponenten** nimmst du per Link mit.
+- Merkliste, Filter, deine Schiffe und Bestückungen liegen nur im Browser, in dem du sie angelegt hast. Eine Bestückung aus **Komponenten** nimmst du per Link mit.
 
 ### Was zeigt „Neuesten Stand laden (GitHub)“?
 

@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.4.0] – 2026-11-24
+
+### Hinzugefügt
+- **Komponenten: „Meine Schiffe …“.** Ein Dialog (nach Hersteller gruppiert, mit Suche) legt fest, welche Schiffe oben als Knöpfe zum Umschalten stehen. So bleibt die Leiste übersichtlich, wenn nach und nach alle Schiffe dazukommen. Ohne Auswahl zeigt der Reiter einen Hinweis mit dem Knopf **Schiffe wählen**.
+- **Auswahl und Bestückung werden im Browser gespeichert** (je Schiff, localStorage), ebenso das zuletzt gezeigte Schiff. Nichts geht an einen Server.
+- **Waffen: Alpha-Schaden und Reichweite** auf jeder Waffenkarte (neben Schaden/s), Alpha auch in der Auswahlliste und als Summe **Alpha-Schaden gesamt** über der Draufsicht.
+
+### Geändert
+- Ein Bestückungs-Link hat weiter Vorrang: Er zeigt sein Schiff auch dann, wenn es nicht zu deinen Schiffen gehört (gestrichelter Knopf, daneben **+ zu meinen Schiffen**). Gespeichert wird die Link-Bestückung erst, wenn du etwas änderst.
+
 ## [1.3.1] – 2026-11-22
 
 ### Behoben

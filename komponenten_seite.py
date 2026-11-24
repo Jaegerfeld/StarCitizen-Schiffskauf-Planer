@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       16.11.2026
+# Geändert:       24.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -17,8 +17,11 @@
 #   Seite. Die Auswahl-Leiste schiebt die Seite ab 1280 px zur Seite statt sie zu
 #   verdecken und schließt per ×, Esc, erneutem Kartenklick oder Klick daneben.
 #   Der Reiter steht neben „Nach Schiff“ und „Nach Standort“ und blendet
-#   Filter, Liste und Merkliste aus. Die Bestückung steckt im Link
-#   (#kp=<schiff>&<platz>=<teil>).
+#   Filter, Liste und Merkliste aus. Oben stehen nur die Schiffe, die der
+#   Spieler im Dialog „Meine Schiffe“ gewählt hat; Auswahl und Bestückung je
+#   Schiff speichert der Browser (localStorage, Schlüssel scsk_kp). Die
+#   Bestückung steckt zusätzlich im Link (#kp=<schiff>&<platz>=<teil>); ein
+#   Link hat Vorrang, gespeichert wird erst, wenn der Spieler etwas ändert.
 # =============================================================================
 """HTML, CSS and JS fragments of the "Komponenten" tab, inserted by the page builder."""
 
@@ -31,8 +34,23 @@ KP_HTML = r"""
         <span class="kp-beta"><span class="de">Vorschau</span><span class="en">Preview</span></span></h2>
       <p class="kp-lede"><span class="de">Karte anklicken, Alternative wählen: Es erscheinen nur Teile, die in diesen Steckplatz passen. Die Einkaufsliste zeigt, wo du sie ingame bekommst.</span><span class="en">Click a card, pick an alternative: only parts that fit this slot are shown. The shopping list shows where to get them in game.</span></p>
     </div>
-    <div class="kp-ships" id="kp-ships" role="group" aria-label="Schiff / Ship"></div>
+    <div class="kp-shipbar"><div class="kp-ships" id="kp-ships" role="group" aria-label="Meine Schiffe / My ships"></div>
+      <button type="button" class="btn kp-minebtn" id="kp-minebtn" aria-haspopup="dialog">⚙ <span class="de">Meine Schiffe …</span><span class="en">My ships …</span></button></div>
   </div>
+  <div class="kp-none" id="kp-none" hidden>
+    <p><b><span class="de">Wähle zuerst deine Schiffe.</span><span class="en">Choose your ships first.</span></b><br>
+    <span class="de">Sie erscheinen dann oben als Knöpfe zum Umschalten. Auswahl und Bestückung merkt sich dein Browser.</span><span class="en">They then appear at the top as buttons to switch between them. Your browser remembers the choice and the loadouts.</span></p>
+    <button type="button" class="btn primary" id="kp-nonebtn"><span class="de">Schiffe wählen</span><span class="en">Choose ships</span></button>
+  </div>
+  <dialog class="kp-mine" id="kp-mine" aria-labelledby="kp-mineh">
+    <div class="kp-mh"><h3 id="kp-mineh"><span class="de">Meine Schiffe</span><span class="en">My ships</span></h3>
+      <button type="button" class="kp-x" id="kp-minex" aria-label="Schließen / Close">×</button></div>
+    <p class="kp-mp"><span class="de">Hak die Schiffe an, die du planen willst. Weitere Schiffe kommen nach und nach dazu.</span><span class="en">Tick the ships you want to plan. More ships are added step by step.</span></p>
+    <label class="kp-mq"><span class="de">Suchen</span><span class="en">Search</span> <input type="search" id="kp-mineq" autocomplete="off"></label>
+    <div class="kp-mlist" id="kp-minelist"></div>
+    <div class="kp-mf"><span id="kp-minecount" role="status"></span>
+      <button type="button" class="btn primary" id="kp-mineok"><span class="de">Fertig</span><span class="en">Done</span></button></div>
+  </dialog>
   <div id="kp-body">
     <div class="kp-sum" id="kp-sum"></div>
     <div class="kp-stage" id="kp-stage">
@@ -80,7 +98,29 @@ KP_CSS = r"""
   #kpPanel h2{font-family:var(--disp);font-size:24px;margin:0;display:flex;gap:10px;align-items:center}
   #kpPanel .kp-beta{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);border:1px dashed var(--accent2);border-radius:6px;padding:1px 8px}
   #kpPanel .kp-lede{color:var(--muted);margin:4px 0 0;max-width:72ch;font-size:14px}
+  #kpPanel .kp-shipbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
   #kpPanel .kp-ships{display:flex;flex-wrap:wrap;gap:8px}
+  #kpPanel .kp-ships button.link{border-style:dashed}
+  #kpPanel .kp-minebtn{min-height:40px}
+  #kpPanel .kp-none{background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:22px;margin:16px 0;text-align:center}
+  #kpPanel .kp-none p{margin:0 0 12px;color:var(--muted)} #kpPanel .kp-none b{color:var(--ink);font-size:17px}
+  #kpPanel .kp-none .btn,#kpPanel .kp-mf .btn{min-height:44px}
+  #kpPanel .btn.primary{background:var(--accent);color:var(--onaccent);border-color:var(--accent);font-weight:700}
+  #kpPanel .kp-linkadd{min-height:40px}
+  .kp-mine{width:min(520px,94vw);max-height:86vh;padding:0;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+  .kp-mine[open]{display:flex;flex-direction:column}
+  .kp-mine::backdrop{background:rgba(0,0,0,.55)}
+  .kp-mh{position:relative;padding:16px 64px 4px 18px} .kp-mh h3{font-family:var(--disp);font-size:22px;margin:0}
+  .kp-mp{margin:0 18px 10px;color:var(--muted);font-size:13.5px}
+  .kp-mq{display:flex;gap:8px;align-items:center;margin:0 18px 8px;font-size:14px}
+  .kp-mq input{flex:1;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--ink);font:inherit}
+  .kp-mlist{overflow:auto;padding:0 18px 8px}
+  .kp-mlist h4{font-family:var(--disp);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+  .kp-mlist label{display:flex;gap:10px;align-items:center;min-height:44px;padding:0 8px;border-radius:8px;cursor:pointer}
+  .kp-mlist label:hover{background:var(--panel2)}
+  .kp-mlist input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+  .kp-mlist small{color:var(--muted)}
+  .kp-mf{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
   #kpPanel .kp-ships button{min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:600 14px var(--body);cursor:pointer}
   #kpPanel .kp-ships button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
   #kpPanel .kp-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0 18px}
@@ -183,7 +223,7 @@ if(!KP){$k('body').innerHTML=`<p class="kp-empty">${T('Die Komponentendaten ware
 
 const CLS={Military:['Militär','Military'],Civilian:['Zivil','Civilian'],Industrial:['Industrie','Industrial'],Competition:['Wettkampf','Competition'],Stealth:['Stealth','Stealth']};
 const STAT={cool:['Kühlung','Cooling',''],power:['Energie','Power',''],hp:['Schild-HP','Shield HP',''],regen:['Regeneration','Regen','/s'],
-  qspeed:['Quantum','Quantum',' Mm/s'],spool:['Anlauf','Spool',' s'],dps:['Schaden','Damage','/s'],range:['Reichweite','Range',' m'],missiles:['Raketen','Missiles',''],
+  qspeed:['Quantum','Quantum',' Mm/s'],spool:['Anlauf','Spool',' s'],dps:['Schaden','Damage','/s'],alpha:['Alpha','Alpha',''],range:['Reichweite','Range',' m'],missiles:['Raketen','Missiles',''],
   pwr:['Strombedarf','Power draw',''],mdmg:['Schaden je Rakete','Damage per missile',''],seek:['Zielsuche','Seeker',''],mspeed:['Tempo','Speed',' m/s'],
   guns:['Waffenplätze','Weapon mounts',''],ir:['IR-Signatur','IR signature',''],em:['EM-Signatur','EM signature',''],dur:['Haltbarkeit','Durability',' HP']};
 // For these values less is better (difference shown green when smaller).
@@ -195,6 +235,18 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const fmt=n=>n==null?'–':(typeof n==='number'?n.toLocaleString(L()==='en'?'en-US':'de-DE'):esc(n));
 const STATE={};
 let ship=KP.ships[0], state={}, BASE=[], SL=[], ANC={}, open=null;
+
+/* ---------- my ships and saved loadouts (browser only) ---------- */
+// {mine:[slug], fit:{slug:{slotId:uuid}}, last:slug}; blocked storage simply means nothing is kept.
+const KEY='scsk_kp'; const DB=Object.assign({mine:[],fit:{},last:null},load(KEY)||{});
+DB.mine=DB.mine.filter(s=>KP.ships.some(x=>x.slug===s));
+let linkShip=null;   // ship opened by a link that is not (yet) one of my ships
+const persist=()=>save(KEY,DB);
+const mine=()=>KP.ships.filter(x=>DB.mine.includes(x.slug));
+// Keep the loadout of the current ship (only changed slots); an unchanged ship has no entry.
+function keepFit(){const f={}; for(const k in state) if(state[k]) f[k]=state[k];
+  if(Object.keys(f).length) DB.fit[ship.slug]=f; else delete DB.fit[ship.slug]; DB.last=ship.slug; persist();}
+function loadFit(slug){return STATE[slug]||(STATE[slug]={...(DB.fit[slug]||{})});}
 
 /* ---------- slots ---------- */
 function stock(s){return s.default;}
@@ -233,12 +285,15 @@ function drawShip(){const g=ship.sil; const [x,y,w,h]=g.viewBox.split(' ');
     <g fill="none" stroke="var(--accent)" stroke-width="1.2" opacity=".6" stroke-linejoin="round">${g.details.map(d=>`<path d="${d}"/>`).join('')}${g.circles.map(c=>`<circle cx="${c[0]}" cy="${c[1]}" r="${c[2]}"/>`).join('')}</g></svg>`;}
 function cardHTML(s){
   const it=item(cur(s)); const k=MAIN[s.type]; const st=STAT[k];
-  const val=k&&it&&it.stats[k]!=null?`${T(st[0],st[1])}: <b>${fmt(it.stats[k])}${st[2]}</b> · `:'';
+  // Weapons show damage/s, alpha (one shot) and range; all other types their main value.
+  const keys=s.type==='WeaponGun'?['dps','alpha','range']:[k];
+  const val=it?keys.filter(x=>x&&it.stats[x]!=null).map(x=>`${T(STAT[x][0],STAT[x][1])}: <b>${fmt(it.stats[x])}${STAT[x][2]}</b>`).join(' · '):'';
+  const valx=val?val+' · ':'';
   const ch=state[s.id]&&state[s.id]!==stock(s);
   return `<button class="kp-card${s.sub?' sub':''}${ch?' changed':''}" data-id="${esc(s.id)}" type="button">
     <div class="t">${s.n>1?s.n+' × ':''}${T(...KP.types[s.type])} <span class="kp-sz">S${s.size}</span>${s.pos?`<span class="kp-ps${s.low?' low':''}">${T(...POS[s.pos])}</span>`:''}<span class="kp-sd">${s.side==='L'?T('links','left'):s.side==='R'?T('rechts','right'):''}</span><span class="kp-chg">${T('geändert','changed')}</span></div>
     <div class="n">${it?esc(it.name):T('leer','empty')}</div>
-    <div class="m">${val}${it?[it.grade?`${T('Güte','Grade')} ${esc(it.grade)}`:'',cls(it)].filter(Boolean).join(' · '):''}</div></button>`;
+    <div class="m">${valx}${it?[it.grade?`${T('Güte','Grade')} ${esc(it.grade)}`:'',cls(it)].filter(Boolean).join(' · '):''}</div></button>`;
 }
 // Cards per column, ordered by mount height so the lines do not cross; sub-cards follow their parent.
 function render(){
@@ -250,7 +305,7 @@ function render(){
   for(const r of ['L','R','C','T']) $k('col'+r).innerHTML=h(cols[r]);
   // A second click on the selected card closes the drawer again.
   box.querySelectorAll('.kp-card').forEach(c=>c.addEventListener('click',()=>{if(open&&open.id===c.dataset.id) closeDrawer(); else openDrawer(c.dataset.id);}));
-  $k('ships').innerHTML=KP.ships.map(x=>`<button type="button" data-slug="${x.slug}" aria-pressed="${x.slug===ship.slug}">${esc(x.short)}</button>`).join('');
+  renderShips();
   $k('stand').textContent=`· ${T('Spielstand','Game version')} ${KP.patch||'–'} · ${T('Stand','As of')} ${KP.built}`;
   renderSum(); renderShop(); requestAnimationFrame(wires); highlight();
 }
@@ -262,7 +317,7 @@ function total(key,useState){let t=0;
     for(const [x,it,n] of list){if(key==='pwr'&&x.type==='QuantumDrive') continue; const v=it?.stats?.[key]; if(typeof v==='number') t+=v*n;}}
   return Math.round(t);}
 function renderSum(){
-  const rows=[['hp',T('Schild-HP gesamt','Total shield HP')],['dps',T('Waffenschaden/s','Weapon damage/s')],['mdmg',T('Raketenschaden gesamt','Total missile damage')],['cool',T('Kühlung','Cooling')]];
+  const rows=[['hp',T('Schild-HP gesamt','Total shield HP')],['dps',T('Waffenschaden/s','Weapon damage/s')],['alpha',T('Alpha-Schaden gesamt','Total alpha damage')],['mdmg',T('Raketenschaden gesamt','Total missile damage')],['cool',T('Kühlung','Cooling')]];
   let h=rows.map(([k,lab])=>{const a=total(k,false),b=total(k,true),d=b-a;
     return `<div><div class="k">${lab}</div><div class="v">${fmt(b)}${d?`<span class="kp-d ${d>0?'up':'down'}">${d>0?'▲ +':'▼ '}${fmt(d)}</span>`:''}</div></div>`}).join('');
   const gen=total('power',true), use=total('pwr',true), ok=gen>=use;
@@ -338,7 +393,7 @@ function fillList(){
 // Fit a part; a new turret or rack resets the choices for its sub-mounts.
 function choose(u){if(!open.sub&&state[open.id]!==u) dropSubs(open.id); state[open.id]=u; changed();}
 function dropSubs(id){for(const k in state) if(k.startsWith(id+'|')) delete state[k];}
-function changed(){writeHash(); render(); open=open&&(SL.find(s=>s.id===open.id)||open); if(open) fillList();}
+function changed(){writeHash(); keepFit(); render(); open=open&&(SL.find(s=>s.id===open.id)||open); if(open) fillList();}
 function highlight(){box.querySelectorAll('.kp-card').forEach(c=>c.classList.toggle('sel',!!open&&c.dataset.id===open.id));
   box.querySelectorAll('#kp-wires path').forEach(p=>p.classList.toggle('on',!!open&&p.dataset.id===open.id));}
 function closeDrawer(){const d=$k('drawer'); d.classList.remove('open'); d.setAttribute('aria-hidden','true'); document.body.classList.remove('kp-open'); const id=open?.id; open=null; highlight();
@@ -357,15 +412,53 @@ $k('resetall').addEventListener('click',()=>{for(const k in state) delete state[
 $k('copylink').addEventListener('click',async e=>{const b=e.currentTarget, t=b.innerHTML; writeHash();
   try{await navigator.clipboard.writeText(location.href); b.textContent=T('Link kopiert ✓','Link copied ✓');}catch(err){b.textContent=T('Kopieren nicht möglich, Adresse aus der Adresszeile nehmen','Copy failed, take the address bar URL');}
   setTimeout(()=>{b.innerHTML=t;},1800);});
-$k('ships').addEventListener('click',e=>{const b=e.target.closest('button[data-slug]'); if(!b||b.dataset.slug===ship.slug) return;
-  if(open) closeDrawer(); ship=KP.ships.find(x=>x.slug===b.dataset.slug); state=STATE[ship.slug]||(STATE[ship.slug]={}); setup(); drawShip(); render(); writeHash();});
+$k('ships').addEventListener('click',e=>{
+  if(e.target.closest('#kp-linkadd')){DB.mine.push(linkShip); linkShip=null; persist(); renderShips(); return;}
+  const b=e.target.closest('button[data-slug]'); if(!b||b.dataset.slug===ship.slug) return; show(b.dataset.slug);});
+// Switch to a ship with its saved (or linked) loadout.
+function show(slug){if(open) closeDrawer(); ship=KP.ships.find(x=>x.slug===slug); state=loadFit(slug);
+  DB.last=slug; persist(); setup(); drawShip(); render(); writeHash();}
+// Buttons for my ships; a linked ship that is not one of mine is shown dashed with an "add" button.
+function renderShips(){
+  const list=mine(); const extra=linkShip&&!DB.mine.includes(linkShip)?KP.ships.find(x=>x.slug===linkShip):null;
+  $k('ships').innerHTML=list.map(x=>`<button type="button" data-slug="${x.slug}" aria-pressed="${x.slug===ship.slug}">${esc(x.short)}</button>`).join('')
+    +(extra?`<button type="button" class="link" data-slug="${extra.slug}" aria-pressed="${extra.slug===ship.slug}" title="${esc(T('aus dem Link','from the link'))}">${esc(extra.short)}</button><button type="button" class="btn kp-linkadd" id="kp-linkadd">+ ${T('zu meinen Schiffen','add to my ships')}</button>`:'');
+  const none=!list.length&&!extra; $k('none').hidden=!none; $k('body').hidden=none;
+}
+// "My ships" dialog: grouped by manufacturer, with search; every tick is saved at once.
+function renderMine(){
+  const q=$k('mineq').value.trim().toLowerCase(); const groups={};
+  for(const x of KP.ships) if(!q||(x.name+' '+x.short+' '+x.maker).toLowerCase().includes(q)) (groups[x.maker||'–']=groups[x.maker||'–']||[]).push(x);
+  const keys=Object.keys(groups).sort((a,b)=>a.localeCompare(b));
+  $k('minelist').innerHTML=keys.length?keys.map(m=>`<h4>${esc(m)}</h4>`+groups[m].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>
+    `<label><input type="checkbox" value="${x.slug}"${DB.mine.includes(x.slug)?' checked':''}> <span>${esc(x.name)}${x.short!==x.name?` <small>(${esc(x.short)})</small>`:''}</span></label>`).join('')).join('')
+    :`<p class="kp-empty">${T('Kein Schiff gefunden.','No ship found.')}</p>`;
+  const n=DB.mine.length; $k('minecount').textContent=T(`${n} von ${KP.ships.length} gewählt`,`${n} of ${KP.ships.length} chosen`);
+}
+function openMine(){$k('mineq').value=''; renderMine(); const d=$k('mine'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); $k('mineq').focus();}
+function closeMine(){const d=$k('mine'); if(d.close) d.close(); else d.removeAttribute('open');}
+$k('minelist').addEventListener('change',e=>{const c=e.target; if(c.type!=='checkbox') return;
+  DB.mine=c.checked?[...new Set([...DB.mine,c.value])]:DB.mine.filter(s=>s!==c.value);
+  // Keep the order of the ship list, so the buttons do not jump around.
+  DB.mine=KP.ships.map(x=>x.slug).filter(s=>DB.mine.includes(s)); persist(); renderMine();});
+$k('mineq').addEventListener('input',renderMine);
+$k('mineok').addEventListener('click',closeMine); $k('minex').addEventListener('click',closeMine);
+$k('mine').addEventListener('close',afterMine);
+$k('minebtn').addEventListener('click',openMine); $k('nonebtn').addEventListener('click',openMine);
+// After the dialog: stay on the current ship if it is still mine (or linked), else go to the first of mine.
+function afterMine(){
+  if(DB.mine.includes(ship.slug)||ship.slug===linkShip){renderShips(); return;}
+  const first=mine()[0]; if(first) show(first.slug); else renderShips();
+}
 // Follow the page language (set by the header switch).
 new MutationObserver(()=>{render(); if(open) openDrawer(open.id); drawShip(); requestAnimationFrame(wires);}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
 // The panel starts hidden: redraw the lines whenever it gets a size (tab shown, window resized).
 new ResizeObserver(()=>requestAnimationFrame(wires)).observe($k('stage'));
 
 /* ---------- start ---------- */
-const fromLink=readHash(); if(!fromLink) state=STATE[ship.slug]={};
+const fromLink=readHash();
+if(fromLink){if(!DB.mine.includes(ship.slug)) linkShip=ship.slug;}
+else{ship=KP.ships.find(x=>x.slug===DB.last&&DB.mine.includes(x.slug))||mine()[0]||KP.ships[0]; state=loadFit(ship.slug);}
 setup(); drawShip(); render();
 // A loadout link opens the tab (S and the page's render() are the ship list's).
 if(fromLink){S.view='kp'; window.render();}
