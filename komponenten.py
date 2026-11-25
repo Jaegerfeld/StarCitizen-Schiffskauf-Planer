@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       16.11.2026
+# Geändert:       26.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -60,7 +60,9 @@ TYPES = {
 AUTO = {"WeaponGun", "MissileLauncher", "Shield", "PowerPlant", "Cooler", "QuantumDrive", "Radar",
         "WeaponMining", "SalvageHead", "TractorBeam"}
 #: Parts that only carry an internal name in the game data.
-NAMES = {"afe85dfc-155c-40f0-87f5-8c26cc41fc37": "Rotodome (Hornet Tracker Mk II)"}
+NAMES = {"afe85dfc-155c-40f0-87f5-8c26cc41fc37": "Rotodome (Hornet Tracker Mk II)",
+         "4455fed7-094e-4844-a97e-f2f890e2369f": "Perseus Torpedo Rack (L)",
+         "6c32193d-15e0-486f-a833-1db0b1f93d05": "Perseus Torpedo Rack (R)"}
 #: Short labels for the missile seeker types.
 SEEK = {"Infrared": "IR", "Electromagnetic": "EM", "CrossSection": "CS"}
 
@@ -127,26 +129,30 @@ def subgroups(ports: list | None) -> dict:
     return groups
 
 
-def slots(vehicle: dict) -> list[dict]:
+def slots(vehicle: dict, show_fixed: bool = False) -> list[dict]:
     """Editable slots of the AUTO types, weapons inside gimbals included.
 
     Swappable gimbals or turrets themselves get no card; the weapon inside does.
 
     Args:
         vehicle: Vehicle record of the Wiki API.
+        show_fixed: Also give built-in guns (not editable, but fitted) a card marked
+            ``fixed``, e.g. the Perseus' S8 cannons and point defence.
 
     Returns:
         Slot dicts with id, port, type, size, side, default part and sub-mount defaults.
     """
-    out = []
+    out, roots = [], []
 
-    def walk(ports: list, parent: str | None = None) -> None:
+    def walk(ports: list, parent: str | None = None, root: str | None = None) -> None:
         for p in ports:
             t = set() if "Turret" in ptypes(p) else ptypes(p) & AUTO
             # A rack that is built in (not editable) but whose missiles can be swapped gets a card
             # as well; the page then offers only the stock rack and the missiles inside.
             fixed = ("MissileLauncher" in t and not p.get("editable")
                      and any("Missile" in ptypes(c) and c.get("editable") for c in p.get("ports") or []))
+            fixed = fixed or (show_fixed and "WeaponGun" in t and not p.get("editable")
+                              and bool((p.get("equipped_item") or {}).get("uuid")))
             if t and (p.get("editable") or fixed) and (p.get("sizes") or {}).get("max"):
                 typ = sorted(t, key=list(TYPES).index)[0]
                 port = parent or p["name"]
@@ -155,9 +161,17 @@ def slots(vehicle: dict) -> list[dict]:
                             "default": (p.get("equipped_item") or {}).get("uuid"),
                             "subdef": {k: g["def"] for k, g in subgroups(p.get("ports")).items()
                                        if g["def"]}, **({"fixed": True} if fixed else {})})
-            walk(p.get("ports") or [], p["name"])
+                roots.append(root or p["name"])
+            walk(p.get("ports") or [], p["name"], root or p["name"])
 
     walk(vehicle["ports"])
+    # Equal turrets (e.g. the Perseus' top and bottom turret) repeat their inner port names. Such
+    # ids get the top-level port in front, and that port becomes the mount position; ids without
+    # a clash stay as they are, so stored loadouts of the other ships keep working.
+    ids = [s["id"] for s in out]
+    for s, root in zip(out, roots, strict=True):
+        if ids.count(s["id"]) > 1:
+            s["id"], s["side"], s["port"] = f"{root}/{s['id']}", side_of(s["port"]), root
     return out
 
 
@@ -397,10 +411,10 @@ def build(use_cache: bool = False) -> dict:
     for slug, cfg in SHIPS.items():
         v = get(f"v3/vehicles/{slug}", f"vehicle_{slug}", use_cache)["data"]
         patch = patch or v.get("version")
-        sl = slots(v)
+        sl = slots(v, cfg.get("show_fixed", False))
         for s in sl:
             if s.get("fixed") and s["default"]:
-                # Built-in rack: its own catalog holds only the stock rack.
+                # Built-in rack or gun: its own catalog holds only the stock part.
                 s["cat"] = f"{slug}:{s['id']}"
                 cat[s["cat"]] = [entry(get(f"items/{s['default']}", f"item_{s['default']}", use_cache)["data"])]
                 continue
