@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.9.0] – 2026-11-26
+
+### Hinzugefügt
+- **Komponenten: RSI Perseus.** Eigene Draufsicht nach eigenem Screenshot, Einbauorte vom Autor in Drauf-, Seiten- und Frontansicht markiert. Damit hat der Reiter 13 Schiffe.
+  - Bemannte Türme oben und unten: je zwei RSI Medusa S8 (fest) und zwei Mantis S3 (tauschbar).
+  - Ferngesteuerte Türme oben und unten: je zwei Waffen S3.
+  - Sechs Punktverteidigungen M2C „Swarm“ S1 (fest), zwei Torpedo-Racks S5 (fest, Torpedos tauschbar).
+  - Die Torpedo-Kamera trägt keine Waffe und hat keine Karte.
+- **Fest verbaute Waffen** erscheinen als Karte mit „fest“, wenn ein Schiff sie als Hauptbewaffnung trägt (zurzeit nur die Perseus). Sie zählen in Schaden/s und Alpha mit; die Auswahl zeigt nur das verbaute Teil.
+
+### Geändert
+- Gleich gebaute Türme eines Schiffs (Perseus oben/unten) bekommen getrennte Steckplätze. Gespeicherte Bestückungen der anderen Schiffe bleiben gültig.
+
 ## [1.8.0] – 2026-11-25
 
 ### Hinzugefügt

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       25.11.2026
+# Geändert:       26.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -227,11 +227,31 @@ def guardian() -> dict:
     return {"viewBox": "110 40 620 1015", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
 
 
+def perseus() -> dict:
+    """RSI Perseus, silhouette v1 (left half, mirrored at x = 1725), accepted on 26.11.2026.
+
+    The top screenshot cuts the nose tip and the rear pods; the outline closes at the image edge.
+    """
+    ox, oy, cx = 1300, 0, 1725
+    left = [(1725, 5), (1665, 5), (1640, 100), (1620, 200), (1570, 260), (1530, 400), (1495, 500),
+            (1475, 520), (1475, 560), (1490, 600), (1470, 620), (1470, 690), (1495, 700), (1480, 760),
+            (1495, 790), (1455, 800), (1440, 830), (1435, 1000), (1420, 1080), (1425, 1438), (1540, 1438),
+            (1545, 1300), (1590, 1330), (1640, 1370), (1725, 1370)]
+    det = [_path([(1650, 195), (1800, 195), (1770, 320), (1680, 320)], ox, oy),          # forward turret deck
+           _path([(1650, 620), (1800, 620), (1800, 1100), (1650, 1100)], ox, oy)]       # central block
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det += [_path(side([(1570, 260), (1640, 600)]), ox, oy, False),                  # wing seam
+                _path(side([(1440, 830), (1640, 830)]), ox, oy, False),                  # aft section
+                _path(side([(1425, 1100), (1540, 1100)]), ox, oy, False)]                # pod
+    return {"viewBox": "90 0 680 1445", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
+
+
 #: Ships of the tab, in display order. Keys are slugs of the Star Citizen Wiki API.
 #: ``anch``: generic mount positions per component type and side (L/R/C list);
 #: ``panch``: exact positions per port (``pos`` oben/unten/nase, ``low`` = underside, drawn
 #: dashed, ``col`` = card column only). ``extra``: ports the data marks as turret or module
-#: mounts, offered with the parts of ``siblings`` (variants of the same hull).
+#: mounts, offered with the parts of ``siblings`` (variants of the same hull). ``show_fixed``:
+#: built-in guns get a card marked "fest" (see ``komponenten.slots``).
 SHIPS: dict[str, dict] = {
     "f7c-hornet-mk-ii": {
         "short": "Hornet Mk II", "sil": hornet_mk2,
@@ -474,6 +494,35 @@ SHIPS: dict[str, dict] = {
             "hardpoint_power_plant_1": {"xy": [380, 800], "col": "L"},
             "hardpoint_power_plant_2": {"xy": [460, 800], "col": "R"},
             "hardpoint_quantum_drive": {"xy": [420, 900]},
+        },
+    },
+    "perseus": {
+        "short": "Perseus", "sil": perseus, "show_fixed": True,
+        "anch": {},
+        # Marked by the author 25.11.2026 (top, side and front view); numbers of the top view
+        # matched to the side and front view on 26.11.2026. Manned turrets: S8 cannons built in,
+        # S3 guns swappable; point defence built in; torpedo camera has no weapon (no card).
+        "panch": {
+            "hardpoint_turret_manned_top": {"xy": [420, 270], "pos": "oben"},
+            "hardpoint_turret_remote_top": {"xy": [420, 920], "pos": "oben"},
+            "hardpoint_pdc_top_left": {"xy": [260, 330], "pos": "oben"},
+            "hardpoint_pdc_top_right": {"xy": [570, 350], "pos": "oben"},
+            "hardpoint_pdc_rear_top": {"xy": [425, 1330], "pos": "oben"},
+            "hardpoint_torpedo_rack_l": {"xy": [350, 510]},
+            "hardpoint_torpedo_rack_r": {"xy": [480, 510]},
+            "hardpoint_turret_manned_bottom": {"xy": [430, 1060], "pos": "unten", "low": True},
+            "hardpoint_turret_remote_bottom": {"xy": [400, 150], "pos": "unten", "low": True},
+            "hardpoint_pdc_bottom_left": {"xy": [170, 550], "pos": "unten", "low": True},
+            "hardpoint_pdc_bottom_right": {"xy": [660, 550], "pos": "unten", "low": True},
+            "hardpoint_pdc_rear_bottom": {"xy": [470, 1360], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [425, 80]},
+            "hardpoint_shield_generator_1": {"xy": [330, 700], "col": "L"},
+            "hardpoint_shield_generator_2": {"xy": [520, 700], "col": "R"},
+            "hardpoint_power_plant_1": {"xy": [330, 790], "col": "L"},
+            "hardpoint_power_plant_2": {"xy": [520, 790], "col": "R"},
+            "hardpoint_cooler_1": {"xy": [250, 950], "col": "L"},
+            "hardpoint_cooler_2": {"xy": [600, 950], "col": "R"},
+            "hardpoint_quantum_drive": {"xy": [425, 1200]},
         },
     },
 }

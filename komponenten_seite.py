@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       25.11.2026
+# Geändert:       26.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -417,6 +417,7 @@ function openDrawer(id){
   const where=item(cur(open.parent||open))?.name||'';
   $k('dtitle').textContent=`${open.n>1?open.n+' × ':''}${T(...KP.types[open.type])} S${open.size}`;
   $k('dsub').textContent=open.sub?T(`Gilt für ${open.n>1?'alle '+open.n+' Plätze':'den Platz'} in ${where}. Werte je Stück im Vergleich zum Standardteil.`,`Applies to ${open.n>1?'all '+open.n+' mounts':'the mount'} in ${where}. Values per piece compared with the stock part.`)
+    :open.fixed&&open.type!=='MissileLauncher'?T(`Fest verbaute Waffe (${sideTxt(open)}) – laut Spieldaten nicht tauschbar.`,`Built-in weapon (${sideTxt(open)}) – not swappable according to the game data.`)
     :open.fixed?T(`Fest verbautes Rack (${sideTxt(open)}) – tauschen kannst du die Raketen darin (Karte darunter).`,`Built-in rack (${sideTxt(open)}) – you can swap the missiles inside (card below).`)
     :T(`Passend für diesen Steckplatz (${sideTxt(open)}). Werte im Vergleich zum Standardteil.`,`Fits this slot (${sideTxt(open)}). Values compared with the stock part.`);
   fillList(); highlight(); const d=$k('drawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false'); document.body.classList.add('kp-open'); $k('dx').focus({preventScroll:true});
