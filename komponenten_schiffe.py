@@ -169,6 +169,64 @@ def mole() -> dict:
     return {"viewBox": "50 25 740 1310", "outline": outline, "details": det, "circles": []}
 
 
+def _sym(left: list, cx: int, ox: int, oy: int) -> str:
+    """Closed outline from a left half mirrored at cx."""
+    return _path(left + _mirror(left[1:-1], cx)[::-1], ox, oy)
+
+
+def f8c() -> dict:
+    """Anvil F8C Lightning, silhouette v1 (left half, mirrored at x = 1720), accepted on 25.11.2026."""
+    ox, oy, cx = 1100, 100, 1720
+    left = [(1720, 150), (1668, 156), (1584, 230), (1511, 420), (1500, 470), (1420, 560), (1300, 690),
+            (1229, 760), (1165, 940), (1250, 975), (1350, 1080), (1470, 1135), (1610, 1175),
+            (1650, 1205), (1720, 1213)]
+    det = [_path([(1690, 165), (1750, 165), (1750, 400), (1690, 400)], ox, oy)]          # canopy
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det += [_path(side([(1511, 420), (1640, 470)]), ox, oy, False),                  # nose pod
+                _path(side([(1300, 690), (1560, 760)]), ox, oy, False)]                   # wing panel
+    return {"viewBox": "40 30 1160 1100", "outline": _sym(left, cx, ox, oy), "details": det,
+            "circles": [[cx - ox, 730 - oy, 95]]}
+
+
+def moth() -> dict:
+    """Argo MOTH, silhouette v1 (left half, mirrored at x = 1728), accepted on 25.11.2026."""
+    ox, oy, cx = 1300, 30, 1728
+    left = [(1728, 64), (1646, 64), (1574, 136), (1546, 250), (1503, 257), (1500, 470), (1510, 530),
+            (1403, 529), (1400, 914), (1389, 943), (1389, 1343), (1546, 1343), (1556, 1157),
+            (1640, 1160), (1728, 1160)]
+    det = [_path([(1660, 230), (1796, 230), (1766, 380), (1690, 380)], ox, oy),          # canopy
+           _path([(1660, 560), (1796, 560), (1796, 1150), (1660, 1150)], ox, oy)]       # spine
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det += [_path(side([(1503, 257), (1546, 257)]), ox, oy, False),
+                _path(side([(1400, 914), (1546, 914)]), ox, oy, False)]
+    return {"viewBox": "60 15 740 1320", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
+
+
+def wolf() -> dict:
+    """Kruger L-21/L-22 Wolf, silhouette v1 (left half, mirrored at x = 1725), accepted on 25.11.2026."""
+    ox, oy, cx = 1300, 250, 1725
+    left = [(1725, 300), (1705, 370), (1675, 470), (1650, 560), (1620, 620), (1600, 680), (1553, 688),
+            (1550, 590), (1530, 545), (1508, 540), (1488, 565), (1485, 820), (1500, 856), (1550, 856),
+            (1553, 812), (1605, 850), (1640, 880), (1648, 1000), (1725, 1000)]
+    det = [_path([(1712, 380), (1738, 380), (1738, 440), (1712, 440)], ox, oy)]          # canopy
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det.append(_path(side([(1650, 560), (1660, 880)]), ox, oy, False))               # hull edge
+    return {"viewBox": "160 30 530 740", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
+
+
+def guardian() -> dict:
+    """Mirai Guardian / Guardian QI, silhouette v1 (left half, mirrored at x = 1720), accepted on 25.11.2026."""
+    ox, oy, cx = 1300, 250, 1720
+    left = [(1720, 520), (1672, 528), (1655, 560), (1648, 660), (1598, 670), (1595, 330), (1582, 312),
+            (1522, 312), (1508, 400), (1500, 580), (1455, 730), (1435, 810), (1440, 1050), (1470, 1100),
+            (1490, 1285), (1665, 1285), (1680, 1205), (1720, 1205)]
+    det = [_path([(1700, 700), (1740, 700), (1720, 870)], ox, oy)]                       # nose cone
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det += [_path(side([(1595, 330), (1600, 900)]), ox, oy, False),                  # wing spar
+                _path(side([(1500, 1100), (1665, 1100)]), ox, oy, False)]                # engine
+    return {"viewBox": "110 40 620 1015", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
+
+
 #: Ships of the tab, in display order. Keys are slugs of the Star Citizen Wiki API.
 #: ``anch``: generic mount positions per component type and side (L/R/C list);
 #: ``panch``: exact positions per port (``pos`` oben/unten/nase, ``low`` = underside, drawn
@@ -301,6 +359,121 @@ SHIPS: dict[str, dict] = {
             "hardpoint_cooler": {"xy": [420, 850]},
             "hardpoint_power_plant": {"xy": [420, 1000]},
             "hardpoint_quantum_drive": {"xy": [420, 1130]},
+        },
+    },
+    "f8c-lightning": {
+        "short": "F8C Lightning", "sil": f8c,
+        "anch": {},
+        # Marked by the author 25.11.2026: 1-6 guns (underside), 7 turret, 8/9 built-in racks.
+        "panch": {
+            "hardpoint_weapon_left_nose": {"xy": [540, 140], "pos": "unten", "low": True},
+            "hardpoint_weapon_right_nose": {"xy": [700, 140], "pos": "unten", "low": True},
+            "hardpoint_weapon_left_wing_inner": {"xy": [340, 580], "pos": "unten", "low": True},
+            "hardpoint_weapon_right_wing_inner": {"xy": [900, 580], "pos": "unten", "low": True},
+            "hardpoint_weapon_left_wing_outer": {"xy": [200, 680], "pos": "unten", "low": True},
+            "hardpoint_weapon_right_wing_outer": {"xy": [1040, 680], "pos": "unten", "low": True},
+            "hardpoint_weapon_turret": {"xy": [620, 630], "pos": "oben"},
+            "hardpoint_weapon_missilerack_left": {"xy": [490, 560], "pos": "oben"},
+            "hardpoint_weapon_missilerack_right": {"xy": [750, 560], "pos": "oben"},
+            "hardpoint_radar": {"xy": [620, 80]},
+            "hardpoint_shield_generator_A": {"xy": [560, 800], "col": "L"},
+            "hardpoint_shield_generator_B": {"xy": [680, 800], "col": "R"},
+            "hardpoint_powerplant": {"xy": [620, 900]},
+            "hardpoint_cooler_left": {"xy": [500, 950], "col": "L"},
+            "hardpoint_cooler_right": {"xy": [740, 950], "col": "R"},
+            "hardpoint_quantum_drive": {"xy": [620, 1050]},
+        },
+    },
+    "moth": {
+        "short": "MOTH", "sil": moth,
+        "anch": {},
+        # Marked by the author 25.11.2026: guns, 3 salvage heads, top missile turret (built-in launcher).
+        "panch": {
+            "hardpoint_gun_left": {"xy": [255, 390]},
+            "hardpoint_gun_right": {"xy": [601, 390]},
+            "hardpoint_mining_cab_front": {"xy": [428, 80], "pos": "unten", "low": True},
+            "hardpoint_mining_cab_left": {"xy": [190, 670]},
+            "hardpoint_mining_cab_right": {"xy": [666, 670]},
+            "hardpoint_turret_top": {"xy": [428, 440], "pos": "oben"},
+            "hardpoint_radar": {"xy": [428, 250]},
+            "hardpoint_shield_generator_left": {"xy": [300, 560], "col": "L"},
+            "hardpoint_cooler": {"xy": [428, 900]},
+            "hardpoint_power_plant": {"xy": [428, 1050]},
+            "hardpoint_quantum_drive": {"xy": [428, 1200]},
+        },
+    },
+    "l-21-wolf": {
+        "short": "L-21 Wolf", "sil": wolf,
+        "anch": {},
+        # Marked by the author 25.11.2026 (same ports as the L-22): guns underside, built-in racks.
+        "panch": {
+            "hardpoint_weapon_left": {"xy": [355, 340], "pos": "unten", "low": True},
+            "hardpoint_weapon_right": {"xy": [495, 340], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_left": {"xy": [290, 440]},
+            "hardpoint_missile_rack_right": {"xy": [560, 440]},
+            "hardpoint_radar": {"xy": [425, 160]},
+            "hardpoint_shield_generator_left": {"xy": [330, 520], "col": "L"},
+            "hardpoint_shield_generator_right": {"xy": [520, 520], "col": "R"},
+            "hardpoint_cooler_left": {"xy": [300, 600], "col": "L"},
+            "hardpoint_cooler_right": {"xy": [550, 600], "col": "R"},
+            "hardpoint_power_plant": {"xy": [425, 620]},
+            "hardpoint_quantum_drive": {"xy": [425, 700]},
+        },
+    },
+    "l-22-alpha-wolf": {
+        "short": "L-22 Alpha Wolf", "sil": wolf,
+        "anch": {},
+        # Same hull and ports as the L-21 Wolf.
+        "panch": {
+            "hardpoint_weapon_left": {"xy": [355, 340], "pos": "unten", "low": True},
+            "hardpoint_weapon_right": {"xy": [495, 340], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_left": {"xy": [290, 440]},
+            "hardpoint_missile_rack_right": {"xy": [560, 440]},
+            "hardpoint_radar": {"xy": [425, 160]},
+            "hardpoint_shield_generator_left": {"xy": [330, 520], "col": "L"},
+            "hardpoint_shield_generator_right": {"xy": [520, 520], "col": "R"},
+            "hardpoint_cooler_left": {"xy": [300, 600], "col": "L"},
+            "hardpoint_cooler_right": {"xy": [550, 600], "col": "R"},
+            "hardpoint_power_plant": {"xy": [425, 620]},
+            "hardpoint_quantum_drive": {"xy": [425, 700]},
+        },
+    },
+    "guardian": {
+        "short": "Guardian", "sil": guardian,
+        "anch": {},
+        # Marked by the author 25.11.2026: guns, racks top (3/4) and bottom (5/6).
+        "panch": {
+            "hardpoint_gun_left": {"xy": [305, 210]},
+            "hardpoint_gun_right": {"xy": [535, 210]},
+            "hardpoint_missile_top_left": {"xy": [230, 580], "pos": "oben"},
+            "hardpoint_missile_top_right": {"xy": [610, 580], "pos": "oben"},
+            "hardpoint_missile_bottom_left": {"xy": [170, 600], "pos": "unten", "low": True},
+            "hardpoint_missile_bottom_right": {"xy": [670, 600], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [420, 330]},
+            "hardpoint_shield_generator": {"xy": [420, 500]},
+            "hardpoint_cooler": {"xy": [420, 650]},
+            "hardpoint_power_plant_1": {"xy": [380, 800], "col": "L"},
+            "hardpoint_power_plant_2": {"xy": [460, 800], "col": "R"},
+            "hardpoint_quantum_drive": {"xy": [420, 900]},
+        },
+    },
+    "guardian-qi": {
+        "short": "Guardian QI", "sil": guardian,
+        "anch": {},
+        # Same hull and ports as the Guardian.
+        "panch": {
+            "hardpoint_gun_left": {"xy": [305, 210]},
+            "hardpoint_gun_right": {"xy": [535, 210]},
+            "hardpoint_missile_top_left": {"xy": [230, 580], "pos": "oben"},
+            "hardpoint_missile_top_right": {"xy": [610, 580], "pos": "oben"},
+            "hardpoint_missile_bottom_left": {"xy": [170, 600], "pos": "unten", "low": True},
+            "hardpoint_missile_bottom_right": {"xy": [670, 600], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [420, 330]},
+            "hardpoint_shield_generator": {"xy": [420, 500]},
+            "hardpoint_cooler": {"xy": [420, 650]},
+            "hardpoint_power_plant_1": {"xy": [380, 800], "col": "L"},
+            "hardpoint_power_plant_2": {"xy": [460, 800], "col": "R"},
+            "hardpoint_quantum_drive": {"xy": [420, 900]},
         },
     },
 }

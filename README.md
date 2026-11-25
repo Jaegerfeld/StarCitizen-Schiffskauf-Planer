@@ -21,7 +21,7 @@ The whole app is **one self-contained HTML file**: no install, no server. The in
 - **Wishlist:** choose the buying location per ship and see buying stops, total and remaining budget.
 - **Components (preview):** swap a ship's shields, power plants, coolers, quantum drive, radar, weapons,
   turrets, missiles, mining lasers with modules, salvage heads and tractor beams, only parts that fit, with totals and a shopping list (cheapest shop, all shops to
-  expand). First the F7C Hornet Mk II, the Guardian MX, the MISC Hull B, the Drake Clipper, the Drake Vulture and the Argo MOLE; own fleet ("My ships", the same model more than once), loadout per ship stored in the browser and shareable as a link; weapons with damage/s, alpha and range.
+  expand). First the F7C Hornet Mk II, Guardian MX, Guardian/QI, F8C Lightning, L-21/L-22 Wolf, MISC Hull B, Drake Clipper, Drake Vulture, Argo MOLE and MOTH; own fleet ("My ships", the same model more than once), loadout per ship stored in the browser and shareable as a link; weapons with damage/s, alpha and range.
 - **Daily data:** the online version is rebuilt every day. The in-app button loads that build's
   `data.json`, also from an offline copy.
 

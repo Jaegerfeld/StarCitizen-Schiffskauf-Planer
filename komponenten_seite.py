@@ -338,7 +338,7 @@ function cardHTML(s){
   const valx=val?val+' · ':'';
   const ch=state[s.id]&&state[s.id]!==stock(s);
   return `<button class="kp-card${s.sub?' sub':''}${ch?' changed':''}" data-id="${esc(s.id)}" type="button">
-    <div class="t">${s.n>1?s.n+' × ':''}${T(...KP.types[s.type])} <span class="kp-sz">S${s.size}</span>${s.pos?`<span class="kp-ps${s.low?' low':''}">${T(...POS[s.pos])}</span>`:''}<span class="kp-sd">${s.side==='L'?T('links','left'):s.side==='R'?T('rechts','right'):''}</span><span class="kp-chg">${T('geändert','changed')}</span></div>
+    <div class="t">${s.n>1?s.n+' × ':''}${T(...KP.types[s.type])} <span class="kp-sz">S${s.size}</span>${s.pos?`<span class="kp-ps${s.low?' low':''}">${T(...POS[s.pos])}</span>`:''}<span class="kp-sd">${s.side==='L'?T('links','left'):s.side==='R'?T('rechts','right'):''}</span>${s.fixed?`<span class="kp-ps">${T('fest','built-in')}</span>`:''}<span class="kp-chg">${T('geändert','changed')}</span></div>
     <div class="n">${it?esc(it.name):T('leer','empty')}</div>
     <div class="m">${valx}${it?[it.grade?`${T('Güte','Grade')} ${esc(it.grade)}`:'',cls(it)].filter(Boolean).join(' · '):''}</div></button>`;
 }
@@ -417,6 +417,7 @@ function openDrawer(id){
   const where=item(cur(open.parent||open))?.name||'';
   $k('dtitle').textContent=`${open.n>1?open.n+' × ':''}${T(...KP.types[open.type])} S${open.size}`;
   $k('dsub').textContent=open.sub?T(`Gilt für ${open.n>1?'alle '+open.n+' Plätze':'den Platz'} in ${where}. Werte je Stück im Vergleich zum Standardteil.`,`Applies to ${open.n>1?'all '+open.n+' mounts':'the mount'} in ${where}. Values per piece compared with the stock part.`)
+    :open.fixed?T(`Fest verbautes Rack (${sideTxt(open)}) – tauschen kannst du die Raketen darin (Karte darunter).`,`Built-in rack (${sideTxt(open)}) – you can swap the missiles inside (card below).`)
     :T(`Passend für diesen Steckplatz (${sideTxt(open)}). Werte im Vergleich zum Standardteil.`,`Fits this slot (${sideTxt(open)}). Values compared with the stock part.`);
   fillList(); highlight(); const d=$k('drawer'); d.classList.add('open'); d.setAttribute('aria-hidden','false'); document.body.classList.add('kp-open'); $k('dx').focus({preventScroll:true});
 }

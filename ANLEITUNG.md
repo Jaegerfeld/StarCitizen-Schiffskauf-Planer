@@ -8,7 +8,7 @@ Der Planer zeigt dir, wo jedes ingame kaufbare Schiff am günstigsten ist und wa
 
 - **Nach Schiff:** jedes Schiff und Fahrzeug einmal, mit dem günstigsten Standort innerhalb deiner Filter und den Preisen anderswo (**Auch:**).
 - **Nach Standort:** alle Angebote, gruppiert nach Sternsystem und Standort. Die Spalte **Vergleich** zeigt **günstigster Ort**, **nur hier** oder den Aufschlag in Prozent.
-- **Komponenten:** Schilde, Kraftwerke, Kühler, Quantum-Antrieb, Radar, Waffen, Türme und Raketen eines Schiffs tauschen, dazu Bergbaulaser mit ihren Modulen, Bergungsköpfe und Traktorstrahlen. Das ist eine Vorschau, zurzeit mit **Hornet Mk II**, **Guardian MX**, **Hull B**, **Clipper**, **Vulture** und **MOLE**.
+- **Komponenten:** Schilde, Kraftwerke, Kühler, Quantum-Antrieb, Radar, Waffen, Türme und Raketen eines Schiffs tauschen, dazu Bergbaulaser mit ihren Modulen, Bergungsköpfe und Traktorstrahlen. Das ist eine Vorschau, zurzeit mit **Hornet Mk II**, **Guardian MX**, **Guardian**/**Guardian QI**, **F8C Lightning**, **L-21**/**L-22 Wolf**, **Hull B**, **Clipper**, **Vulture**, **MOLE** und **MOTH**.
 - **Merkliste:** rechts neben der Liste. Hier wählst du den Kaufort je Schiff und siehst **Kaufstopps**, **Summe** und dein Budget.
 - Auf schmalen Bildschirmen wechselst du oben mit **Schiffe** und **Merkliste** zwischen Liste und Merkliste.
 

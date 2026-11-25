@@ -143,14 +143,18 @@ def slots(vehicle: dict) -> list[dict]:
     def walk(ports: list, parent: str | None = None) -> None:
         for p in ports:
             t = set() if "Turret" in ptypes(p) else ptypes(p) & AUTO
-            if t and p.get("editable") and (p.get("sizes") or {}).get("max"):
+            # A rack that is built in (not editable) but whose missiles can be swapped gets a card
+            # as well; the page then offers only the stock rack and the missiles inside.
+            fixed = ("MissileLauncher" in t and not p.get("editable")
+                     and any("Missile" in ptypes(c) and c.get("editable") for c in p.get("ports") or []))
+            if t and (p.get("editable") or fixed) and (p.get("sizes") or {}).get("max"):
                 typ = sorted(t, key=list(TYPES).index)[0]
                 port = parent or p["name"]
                 out.append({"id": f"{parent}/{p['name']}" if parent else p["name"], "port": port,
                             "type": typ, "size": p["sizes"]["max"], "side": side_of(port),
                             "default": (p.get("equipped_item") or {}).get("uuid"),
                             "subdef": {k: g["def"] for k, g in subgroups(p.get("ports")).items()
-                                       if g["def"]}})
+                                       if g["def"]}, **({"fixed": True} if fixed else {})})
             walk(p.get("ports") or [], p["name"])
 
     walk(vehicle["ports"])
@@ -395,6 +399,11 @@ def build(use_cache: bool = False) -> dict:
         patch = patch or v.get("version")
         sl = slots(v)
         for s in sl:
+            if s.get("fixed") and s["default"]:
+                # Built-in rack: its own catalog holds only the stock rack.
+                s["cat"] = f"{slug}:{s['id']}"
+                cat[s["cat"]] = [entry(get(f"items/{s['default']}", f"item_{s['default']}", use_cache)["data"])]
+                continue
             key = f"{s['type']}_{s['size']}"
             if key not in cat:
                 cat[key] = candidates(s["type"], s["size"], use_cache)
