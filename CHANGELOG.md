@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.6.0] – 2026-11-25
+
+### Hinzugefügt
+- **Komponenten: Drake Vulture und Argo MOLE.** Eigene Draufsichten nach eigenen Screenshots, Einbauorte vom Autor markiert: Vulture mit zwei Kanonen S1 am Cockpit, MOLE mit zwei Kanonen S2 vorn oben. Die Bergungsköpfe der Vulture und die drei Bergbaulaser der MOLE sind markiert, kommen aber erst mit dem Ausbau für Bergbau und Bergung in den Reiter; bis dahin zeigen beide Schiffe Kanonen, Schilde, Kühler, Kraftwerk, Quantum-Antrieb und Radar.
+- **Komponenten: Drake Clipper.** Eigene Draufsicht nach eigenem Screenshot – als ganzer Umriss, weil das Schiff asymmetrisch ist: links 3, rechts 5 Racks (Spieldaten und Spiel stimmen überein). Alle 12 Waffenplätze vom Autor markiert, alle an der Unterseite: zwei Kanonen S3 an der Nase, zwei an den Flügeln, acht Racks S3 (Raketen oder Bomben). Welches Rack innen sitzt, sagen die Daten nicht; gezählt wird je Seite von innen nach außen.
+
+### Geändert
+- Breite Schiffe (Draufsicht breiter als hoch, z. B. Clipper) bekommen im Komponenten-Reiter eine breitere Mittelspalte (bis 640 statt 430 px), damit die Draufsicht lesbar bleibt.
+
 ## [1.5.0] – 2026-11-25
 
 ### Hinzugefügt
