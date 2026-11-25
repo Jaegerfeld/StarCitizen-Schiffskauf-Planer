@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       27.11.2026
+# Geändert:       28.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -263,11 +263,12 @@ const STAT={cool:['Kühlung','Cooling',''],power:['Energie','Power',''],hp:['Sch
   pwr:['Strombedarf','Power draw',''],mdmg:['Schaden je Rakete','Damage per missile',''],seek:['Zielsuche','Seeker',''],mspeed:['Tempo','Speed',' m/s'],
   guns:['Waffenplätze','Weapon mounts',''],ir:['IR-Signatur','IR signature',''],em:['EM-Signatur','EM signature',''],dur:['Haltbarkeit','Durability',' HP'],
   mpow:['Laserleistung','Laser power',''],resist:['Widerstand','Resistance',' %'],inst:['Instabilität','Instability',' %'],win:['Optimales Fenster','Optimal window',' %'],
-  mpm:['Laserleistung','Laser power',' %'],muses:['Ladungen','Charges',''],mdur:['Dauer','Duration',' s'],tforce:['Zugkraft','Pull force',' N'],tfull:['Volle Kraft bis','Full force up to',' m']};
+  mpm:['Laserleistung','Laser power',' %'],muses:['Ladungen','Charges',''],mdur:['Dauer','Duration',' s'],tforce:['Zugkraft','Pull force',' N'],tfull:['Volle Kraft bis','Full force up to',' m'],
+  sspd:['Tempo','Speed',' %'],srad:['Radius','Radius',' %'],seff:['Ausbeute','Yield',' %']};
 // For these values less is better (difference shown green when smaller).
 const LOWER=new Set(['pwr','ir','em','spool','resist','inst']);
 const MAIN={Cooler:'cool',PowerPlant:'power',Shield:'hp',QuantumDrive:'qspeed',WeaponGun:'dps',MissileLauncher:'missiles',Radar:'pwr',Turret:'guns',Mount:'guns',Missile:'mdmg',
-  WeaponMining:'mpow',SalvageHead:'range',TractorBeam:'tforce',MiningModifier:'mpm'};
+  WeaponMining:'mpow',SalvageHead:'range',TractorBeam:'tforce',MiningModifier:'mpm',SalvageModifier:'sspd'};
 // Signed values (changes in percent) are shown with + or -.
 const SIGNED=new Set(['resist','inst','win','mpm']);
 const POS={oben:['oben','top'],unten:['unten','bottom'],nase:['Nase','nose']};
@@ -327,7 +328,7 @@ function setup(){
     ANC[s.id]=a; s.row=pa?.col||(s.side==='C'?(a[1]<250?'T':'C'):s.side);}
 }
 // Sub-mounts of a slot for the part fitted (or the stock part): weapons in turrets, missiles in racks.
-function subsFor(s,u){const it=item(u); return (it?.sub||[]).map(g=>({id:s.id+'|'+g.k,parent:s,sub:true,type:g.type,size:g.size,n:g.n,
+function subsFor(s,u){const it=item(u); return (it?.sub||[]).map(g=>({id:s.id+'|'+g.k,parent:s,sub:true,type:g.type,size:g.size,n:g.n,cat:g.cat,
   side:s.side,pos:s.pos,low:s.low,row:s.row,default:(u===stock(s)?(s.subdef||{})[g.k]:null)??g.def??null}));}
 function buildSlots(){SL=[]; for(const s of BASE){SL.push(s); SL.push(...subsFor(s,cur(s)));}}
 // Place words: side plus top/bottom/nose where known.
@@ -353,7 +354,7 @@ function drawShip(){const g=ship.sil; const [x,y,w,h]=g.viewBox.split(' ');
 function cardHTML(s){
   const it=item(cur(s)); const k=MAIN[s.type]; const st=STAT[k];
   // Weapons show damage/s, alpha (one shot) and range; all other types their main value.
-  const keys={WeaponGun:['dps','alpha','range'],WeaponMining:['mpow','range'],TractorBeam:['tforce','range']}[s.type]||[k];
+  const keys={WeaponGun:['dps','alpha','range'],WeaponMining:['mpow','range'],TractorBeam:['tforce','range'],SalvageModifier:['sspd','srad','seff']}[s.type]||[k];
   const val=it?keys.filter(x=>x&&it.stats[x]!=null).map(x=>`${T(STAT[x][0],STAT[x][1])}: <b>${fmtK(x,it.stats[x])}${STAT[x][2]}</b>`).join(' · '):'';
   const valx=val?val+' · ':'';
   const ch=state[s.id]&&state[s.id]!==stock(s);

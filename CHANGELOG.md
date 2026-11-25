@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.11.0] – 2026-11-28
+
+### Hinzugefügt
+- **Komponenten: Scraper-Module in den Bergungsköpfen** (MOTH, Vulture). Jeder Baler-Kopf hat zwei Modulplätze; jeder Platz ist eine eigene Unterkarte, denn meist stecken zwei verschiedene Module darin (z. B. Cinch und Abrade, an der Vulture links Cinch und ReadyGrip). Zur Wahl stehen die Scraper Abrade, Cinch, Comer, Hart, Trawler und das Traktormodul ReadyGrip, mit Preis und Händler.
+  - Kennwerte in Prozent des Kopfs ohne Modul: Tempo (Abtragsgeschwindigkeit), Radius und Ausbeute.
+  - Die Spieldaten führen die Modulplätze als nicht tauschbar; im Spiel lassen sie sich wechseln, deshalb bietet der Planer sie an.
+
 ## [1.10.0] – 2026-11-27
 
 ### Hinzugefügt

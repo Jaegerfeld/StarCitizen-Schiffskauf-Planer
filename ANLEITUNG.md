@@ -8,7 +8,7 @@ Der Planer zeigt dir, wo jedes ingame kaufbare Schiff am günstigsten ist und wa
 
 - **Nach Schiff:** jedes Schiff und Fahrzeug einmal, mit dem günstigsten Standort innerhalb deiner Filter und den Preisen anderswo (**Auch:**).
 - **Nach Standort:** alle Angebote, gruppiert nach Sternsystem und Standort. Die Spalte **Vergleich** zeigt **günstigster Ort**, **nur hier** oder den Aufschlag in Prozent.
-- **Komponenten:** Schilde, Kraftwerke, Kühler, Quantum-Antrieb, Radar, Waffen, Türme und Raketen eines Schiffs tauschen, dazu Bergbaulaser mit ihren Modulen, Bergungsköpfe und Traktorstrahlen. Das ist eine Vorschau, zurzeit mit **Anvil F7C Hornet Mk II**, **Anvil F8C Lightning**, **Argo MOLE**, **Argo MOTH**, **Drake Clipper**, **Drake Vulture**, **Kruger L-21 Wolf**, **Kruger L-22 Alpha Wolf**, **Mirai Guardian**, **Mirai Guardian MX**, **Mirai Guardian QI**, **MISC Hull B** und **RSI Perseus**.
+- **Komponenten:** Schilde, Kraftwerke, Kühler, Quantum-Antrieb, Radar, Waffen, Türme und Raketen eines Schiffs tauschen, dazu Bergbaulaser mit ihren Modulen, Bergungsköpfe mit ihren Scraper-Modulen und Traktorstrahlen. Das ist eine Vorschau, zurzeit mit **Anvil F7C Hornet Mk II**, **Anvil F8C Lightning**, **Argo MOLE**, **Argo MOTH**, **Drake Clipper**, **Drake Vulture**, **Kruger L-21 Wolf**, **Kruger L-22 Alpha Wolf**, **Mirai Guardian**, **Mirai Guardian MX**, **Mirai Guardian QI**, **MISC Hull B** und **RSI Perseus**.
 - **Merkliste:** rechts neben der Liste. Hier wählst du den Kaufort je Schiff und siehst **Kaufstopps**, **Summe** und dein Budget.
 - Auf schmalen Bildschirmen wechselst du oben mit **Schiffe** und **Merkliste** zwischen Liste und Merkliste.
 
