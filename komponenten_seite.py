@@ -149,6 +149,8 @@ KP_CSS = r"""
   #kpPanel .kp-d{font-size:13px;font-weight:700;margin-left:6px}
   #kpPanel .kp-d.up{color:var(--ok)} #kpPanel .kp-d.down{color:var(--bad)}
   #kpPanel .kp-stage{position:relative;display:grid;grid-template-columns:minmax(230px,1fr) minmax(320px,430px) minmax(230px,1fr);gap:26px;align-items:center}
+  /* Wide ships (e.g. Clipper) get a wider centre column so the top view stays readable. */
+  #kpPanel .kp-stage.wide{grid-template-columns:minmax(230px,1fr) minmax(420px,640px) minmax(230px,1fr)}
   #kpPanel .kp-col{display:flex;flex-direction:column;gap:12px}
   #kpPanel .kp-ship svg{width:100%;height:auto;display:block}
   #kpPanel .kp-toprow{margin:0 0 -6px}
@@ -315,6 +317,7 @@ function writeHash(){const p=new URLSearchParams({kp:ship.slug}); for(const s of
 /* ---------- drawing ---------- */
 // Own stylised top view of the ship from the path data.
 function drawShip(){const g=ship.sil; const [x,y,w,h]=g.viewBox.split(' ');
+  $k('stage').classList.toggle('wide',+w>1.2*+h);
   $k('ship').innerHTML=`<svg id="kp-svg" viewBox="${g.viewBox}" role="img" aria-label="${esc(T('Draufsicht','Top view'))} ${esc(ship.name)}">
     <defs><pattern id="kp-grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0H0V25" fill="none" stroke="var(--line)" stroke-width=".7"/></pattern></defs>
     <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#kp-grid)" opacity=".7" rx="16"/>

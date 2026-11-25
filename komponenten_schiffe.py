@@ -108,6 +108,29 @@ def hull_b() -> dict:
     return {"viewBox": "214 28 420 978", "outline": outline, "details": det, "circles": []}
 
 
+def clipper() -> dict:
+    """Drake Clipper, silhouette v1 (whole outline: asymmetric, 3 racks left, 5 right), accepted 25.11.2026.
+
+    Returns:
+        Dict with viewBox, outline path, detail paths and circles (none).
+    """
+    ox, oy = 1150, 280
+    pts = [(1700, 320), (1765, 320), (1782, 395), (1815, 640), (1840, 600), (1870, 590), (1930, 595),
+           (1948, 640), (1950, 662), (2455, 660), (2460, 745), (2300, 805), (2100, 885), (1990, 935),
+           (1945, 935), (1935, 968), (1860, 972), (1850, 905), (1800, 905), (1785, 960), (1765, 1000),
+           (1745, 1095), (1680, 1095), (1660, 1000), (1645, 950), (1600, 930), (1560, 935), (1515, 920),
+           (1500, 880), (1400, 838), (1300, 798), (1205, 760), (1195, 650), (1520, 655), (1525, 615),
+           (1560, 605), (1600, 612), (1612, 640), (1632, 520), (1652, 420), (1688, 372)]
+    det = [_path([(1700, 320), (1765, 320), (1765, 395), (1700, 395)], ox, oy),        # nose box
+           _path([(1720, 400), (1745, 400), (1745, 900), (1720, 900)], ox, oy),        # spine
+           _path([(1205, 705), (1515, 705)], ox, oy, False),                           # left wing spar
+           _path([(1950, 705), (2455, 705)], ox, oy, False),                           # right wing spar
+           _path([(1525, 615), (1600, 615), (1600, 925), (1525, 925)], ox, oy),        # left engine pod
+           _path([(1850, 600), (1945, 600), (1945, 900), (1850, 900)], ox, oy),        # right engine pod
+           _path([(1670, 1000), (1755, 1000)], ox, oy, False)]                         # stern
+    return {"viewBox": "20 20 1320 840", "outline": _path(pts, ox, oy), "details": det, "circles": []}
+
+
 #: Ships of the tab, in display order. Keys are slugs of the Star Citizen Wiki API.
 #: ``anch``: generic mount positions per component type and side (L/R/C list);
 #: ``panch``: exact positions per port (``pos`` oben/unten/nase, ``low`` = underside, drawn
@@ -170,6 +193,34 @@ SHIPS: dict[str, dict] = {
             "hardpoint_cooler_right": {"xy": [529, 790], "col": "R"},
             "hardpoint_power_plant": {"xy": [423, 690]},
             "hardpoint_quantum_drive": {"xy": [423, 890]},
+        },
+    },
+    "clipper": {
+        "short": "Clipper", "sil": clipper,
+        "anch": {},
+        # All 12 weapons as marked by the author (25.11.2026), all on the underside. The data does
+        # not say which rack sits inside: racks are numbered from the hull outwards (left_1..3,
+        # right_1..5), as the author numbered them. Other components generic in the hull.
+        "panch": {
+            "hardpoint_weapon_left": {"xy": [540, 85], "pos": "unten", "low": True},
+            "hardpoint_weapon_right": {"xy": [625, 85], "pos": "unten", "low": True},
+            "hardpoint_weapon_wing_left": {"xy": [355, 410], "pos": "unten", "low": True},
+            "hardpoint_weapon_wing_right": {"xy": [805, 410], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_left_1": {"xy": [290, 425], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_left_2": {"xy": [220, 425], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_left_3": {"xy": [150, 425], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_right_1": {"xy": [930, 425], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_right_2": {"xy": [990, 425], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_right_3": {"xy": [1059, 425], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_right_4": {"xy": [1140, 425], "pos": "unten", "low": True},
+            "hardpoint_missile_rack_right_5": {"xy": [1222, 425], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [582, 160]},
+            "hardpoint_shield_generator_1": {"xy": [548, 330], "col": "L"},
+            "hardpoint_shield_generator_2": {"xy": [618, 330], "col": "R"},
+            "hardpoint_cooler": {"xy": [582, 480]},
+            "hardpoint_power_plant_1": {"xy": [548, 600], "col": "L"},
+            "hardpoint_power_plant_2": {"xy": [618, 600], "col": "R"},
+            "hardpoint_quantum_drive": {"xy": [582, 740]},
         },
     },
 }
