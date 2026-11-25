@@ -51,9 +51,14 @@ TYPES = {
     "Turret": ("Turm", "Turret"),
     "Mount": ("Turm/Modul", "Turret/module"),
     "Missile": ("Rakete", "Missile"),
+    "WeaponMining": ("Bergbaulaser", "Mining laser"),
+    "SalvageHead": ("Bergungskopf", "Salvage head"),
+    "TractorBeam": ("Traktorstrahl", "Tractor beam"),
+    "MiningModifier": ("Bergbaumodul", "Mining module"),
 }
 #: Types that slots() detects on its own; the others only via ``extra`` or as sub-mounts.
-AUTO = {"WeaponGun", "MissileLauncher", "Shield", "PowerPlant", "Cooler", "QuantumDrive", "Radar"}
+AUTO = {"WeaponGun", "MissileLauncher", "Shield", "PowerPlant", "Cooler", "QuantumDrive", "Radar",
+        "WeaponMining", "SalvageHead", "TractorBeam"}
 #: Parts that only carry an internal name in the game data.
 NAMES = {"afe85dfc-155c-40f0-87f5-8c26cc41fc37": "Rotodome (Hornet Tracker Mk II)"}
 #: Short labels for the missile seeker types.
@@ -110,7 +115,7 @@ def subgroups(ports: list | None) -> dict:
     groups: dict = {}
     for p in ports or []:
         ts, size = ptypes(p), (p.get("sizes") or {}).get("max")
-        typ = "WeaponGun" if "WeaponGun" in ts else "Missile" if "Missile" in ts else None
+        typ = next((x for x in ("WeaponGun", "Missile", "MiningModifier") if x in ts), None)
         if not typ or not size:
             continue
         k = f"{typ}_{size}"
@@ -192,6 +197,33 @@ def _rack(it: dict) -> dict:
     return {"missiles": f"{len(sizes)} × S{max(sizes)}" if sizes else None}
 
 
+def _mining(it: dict, use: float | None) -> dict:
+    """Laser power, range and the laser's effect on resistance, instability and charge window (percent)."""
+    ml = it.get("mining_laser") or {}
+    mods = {m.get("name"): m.get("value") for m in ml.get("modifiers") or []}
+    return {"mpow": (ml.get("laser_power") or {}).get("max"), "range": (it.get("vehicle_weapon") or {}).get("range"),
+            "resist": mods.get("resistance"), "inst": mods.get("laser_instability"),
+            "win": mods.get("optimal_charge_window_size"), "pwr": use}
+
+
+def _module(it: dict) -> dict:
+    """Mining module: change of laser power (percent), resistance, and charges/duration of active ones."""
+    mm = it.get("mining_modifier") or {}
+    pm, mp = mm.get("power_modifier"), mm.get("modifier_map") or {}
+    active = mm.get("type") == "Active"
+    return {"mpm": round(pm * 100) if isinstance(pm, (int, float)) else None,
+            "resist": mp.get("resistance") if isinstance(mp, dict) else None,
+            "muses": mm.get("charges") if active else None, "mdur": mm.get("duration") if active else None}
+
+
+def _tractor(it: dict, use: float | None) -> dict:
+    """Tractor beam: maximum pull force (N), range and full-strength distance (m)."""
+    tb = it.get("tractor_beam") or {}
+    rg = tb.get("range") or {}
+    return {"tforce": (tb.get("force") or {}).get("max"), "range": rg.get("max"),
+            "tfull": rg.get("full_strength_distance"), "pwr": use}
+
+
 def stats(it: dict) -> dict:
     """At most three key values per type, always the same ones, plus power draw (pwr).
 
@@ -221,6 +253,10 @@ def stats(it: dict) -> dict:
                             "seek": SEEK.get(mis.get("signal_type"), mis.get("signal_type")),
                             "mspeed": mis.get("speed")},
         "Turret": lambda: {"guns": _mounts_text(it)},
+        "WeaponMining": lambda: _mining(it, use),
+        "MiningModifier": lambda: _module(it),
+        "SalvageHead": lambda: {"range": (it.get("vehicle_weapon") or {}).get("range"), "pwr": use},
+        "TractorBeam": lambda: _tractor(it, use),
     }
     return table[t]() if t in table else {}
 
@@ -254,7 +290,7 @@ def entry(it: dict) -> dict:
             "loot": bool(it.get("is_lootable")), "craft": bool(it.get("is_craftable")),
             "stats": stats(it), "buy": sh[0] if sh else None, "shops": sh,
             "sub": (list(subgroups(it.get("ports")).values())
-                    if it.get("type") in ("Turret", "MissileLauncher") else [])}
+                    if it.get("type") in ("Turret", "MissileLauncher", "WeaponMining") else [])}
 
 
 def candidates(typ: str, size: int, use_cache: bool) -> list[dict]:

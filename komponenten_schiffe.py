@@ -214,14 +214,16 @@ SHIPS: dict[str, dict] = {
     "misc-hull-b": {
         "short": "Hull B", "sil": hull_b,
         "anch": {},
-        # Weapons 1-4 as marked by the author (25.11.2026, top, side and front view); the
-        # tractor beams (5, 6) are not part of the tab yet. Other components generic in the hull.
+        # Weapons 1-4 and tractor beams 5/6 as marked by the author (25.11.2026, top, side and
+        # front view). Other components generic in the hull.
         "panch": {
             "hardpoint_weapon_left": {"xy": [329, 190], "pos": "unten", "low": True},
             "hardpoint_weapon_right": {"xy": [517, 190], "pos": "unten", "low": True},
             "weapon_left": {"xy": [410, 510], "pos": "oben"},
             "weapon_right": {"xy": [436, 510], "pos": "oben"},
             "hardpoint_missile_rack": {"xy": [423, 65], "pos": "unten", "low": True},
+            "hardpoint_tractor_beam_left": {"xy": [277, 680]},
+            "hardpoint_tractor_beam_right": {"xy": [569, 680]},
             "hardpoint_radar": {"xy": [423, 140]},
             "hardpoint_shield_generator_front_left": {"xy": [299, 370], "col": "L"},
             "hardpoint_shield_generator_front_right": {"xy": [547, 370], "col": "R"},
@@ -264,8 +266,7 @@ SHIPS: dict[str, dict] = {
     "vulture": {
         "short": "Vulture", "sil": vulture,
         "anch": {},
-        # Guns 1/2 and salvage heads 3/4 as marked by the author (25.11.2026). The tab does not
-        # offer salvage heads yet; their positions are kept for the salvage extension.
+        # Guns 1/2 and salvage heads 3/4 as marked by the author (25.11.2026).
         "panch": {
             "hardpoint_weapon_nose_left": {"xy": [300, 760]},
             "hardpoint_weapon_nose_right": {"xy": [544, 760]},
@@ -285,8 +286,7 @@ SHIPS: dict[str, dict] = {
     "mole": {
         "short": "MOLE", "sil": mole,
         "anch": {},
-        # Guns 1/2 and mining lasers 3-5 as marked by the author (25.11.2026). The tab does not
-        # offer mining lasers yet; their positions are kept for the mining extension.
+        # Guns 1/2 and mining lasers 3-5 as marked by the author (25.11.2026).
         "panch": {
             "hardpoint_gun_left": {"xy": [290, 200], "pos": "oben"},
             "hardpoint_gun_right": {"xy": [550, 200], "pos": "oben"},

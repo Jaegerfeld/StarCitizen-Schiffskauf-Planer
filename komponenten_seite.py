@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       24.11.2026
+# Geändert:       25.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -246,14 +246,21 @@ const CLS={Military:['Militär','Military'],Civilian:['Zivil','Civilian'],Indust
 const STAT={cool:['Kühlung','Cooling',''],power:['Energie','Power',''],hp:['Schild-HP','Shield HP',''],regen:['Regeneration','Regen','/s'],
   qspeed:['Quantum','Quantum',' Mm/s'],spool:['Anlauf','Spool',' s'],dps:['Schaden','Damage','/s'],alpha:['Alpha','Alpha',''],range:['Reichweite','Range',' m'],missiles:['Raketen','Missiles',''],
   pwr:['Strombedarf','Power draw',''],mdmg:['Schaden je Rakete','Damage per missile',''],seek:['Zielsuche','Seeker',''],mspeed:['Tempo','Speed',' m/s'],
-  guns:['Waffenplätze','Weapon mounts',''],ir:['IR-Signatur','IR signature',''],em:['EM-Signatur','EM signature',''],dur:['Haltbarkeit','Durability',' HP']};
+  guns:['Waffenplätze','Weapon mounts',''],ir:['IR-Signatur','IR signature',''],em:['EM-Signatur','EM signature',''],dur:['Haltbarkeit','Durability',' HP'],
+  mpow:['Laserleistung','Laser power',''],resist:['Widerstand','Resistance',' %'],inst:['Instabilität','Instability',' %'],win:['Optimales Fenster','Optimal window',' %'],
+  mpm:['Laserleistung','Laser power',' %'],muses:['Ladungen','Charges',''],mdur:['Dauer','Duration',' s'],tforce:['Zugkraft','Pull force',' N'],tfull:['Volle Kraft bis','Full force up to',' m']};
 // For these values less is better (difference shown green when smaller).
-const LOWER=new Set(['pwr','ir','em','spool']);
-const MAIN={Cooler:'cool',PowerPlant:'power',Shield:'hp',QuantumDrive:'qspeed',WeaponGun:'dps',MissileLauncher:'missiles',Radar:'pwr',Turret:'guns',Mount:'guns',Missile:'mdmg'};
+const LOWER=new Set(['pwr','ir','em','spool','resist','inst']);
+const MAIN={Cooler:'cool',PowerPlant:'power',Shield:'hp',QuantumDrive:'qspeed',WeaponGun:'dps',MissileLauncher:'missiles',Radar:'pwr',Turret:'guns',Mount:'guns',Missile:'mdmg',
+  WeaponMining:'mpow',SalvageHead:'range',TractorBeam:'tforce',MiningModifier:'mpm'};
+// Signed values (changes in percent) are shown with + or -.
+const SIGNED=new Set(['resist','inst','win','mpm']);
 const POS={oben:['oben','top'],unten:['unten','bottom'],nase:['Nase','nose']};
 const byKey={}; for(const k in KP.catalog) for(const it of KP.catalog[k]) byKey[it.uuid]=it;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=n=>n==null?'–':(typeof n==='number'?n.toLocaleString(L()==='en'?'en-US':'de-DE'):esc(n));
+// Value with its sign for changes in percent (e.g. +25 %), plain otherwise.
+const fmtK=(k,v)=>SIGNED.has(k)&&typeof v==='number'&&v>0?'+'+fmt(v):fmt(v);
 const STATE={};
 let ship=KP.ships[0], state={}, BASE=[], SL=[], ANC={}, open=null;
 
@@ -326,8 +333,8 @@ function drawShip(){const g=ship.sil; const [x,y,w,h]=g.viewBox.split(' ');
 function cardHTML(s){
   const it=item(cur(s)); const k=MAIN[s.type]; const st=STAT[k];
   // Weapons show damage/s, alpha (one shot) and range; all other types their main value.
-  const keys=s.type==='WeaponGun'?['dps','alpha','range']:[k];
-  const val=it?keys.filter(x=>x&&it.stats[x]!=null).map(x=>`${T(STAT[x][0],STAT[x][1])}: <b>${fmt(it.stats[x])}${STAT[x][2]}</b>`).join(' · '):'';
+  const keys={WeaponGun:['dps','alpha','range'],WeaponMining:['mpow','range'],TractorBeam:['tforce','range']}[s.type]||[k];
+  const val=it?keys.filter(x=>x&&it.stats[x]!=null).map(x=>`${T(STAT[x][0],STAT[x][1])}: <b>${fmtK(x,it.stats[x])}${STAT[x][2]}</b>`).join(' · '):'';
   const valx=val?val+' · ':'';
   const ch=state[s.id]&&state[s.id]!==stock(s);
   return `<button class="kp-card${s.sub?' sub':''}${ch?' changed':''}" data-id="${esc(s.id)}" type="button">
@@ -421,7 +428,7 @@ function fillList(){
   if(!list.length){dl.innerHTML=`<p class="kp-empty">${T('Keine ingame kaufbare Alternative bekannt. Haken oben entfernen, um auch nicht kaufbare Teile zu sehen (Loot, Crafting, Werksteile anderer Varianten).','No buyable alternative known. Untick the box above to also see parts you cannot buy (loot, crafting, stock parts of other variants).')}</p>`;return;}
   dl.innerHTML=list.map(it=>{
     const sts=Object.entries(it.stats).filter(([kk,v])=>v!=null&&STAT[kk]).map(([kk,v])=>{const b=base?.stats?.[kk]; const d=(typeof v==='number'&&typeof b==='number')?Math.round((v-b)*10)/10:0;
-      const good=LOWER.has(kk)?d<0:d>0; return `${T(STAT[kk][0],STAT[kk][1])} ${fmt(v)}${STAT[kk][2]}${d?` <span class="kp-d ${good?'up':'down'}">${d>0?'+':''}${fmt(d)}</span>`:''}`}).join(' · ');
+      const good=LOWER.has(kk)?d<0:d>0; return `${T(STAT[kk][0],STAT[kk][1])} ${fmtK(kk,v)}${STAT[kk][2]}${d?` <span class="kp-d ${good?'up':'down'}">${d>0?'+':''}${fmt(d)}</span>`:''}`}).join(' · ');
     const tags=(it.uuid===stock(s)?`<span class="kp-tag">${T('Standard','Stock')}</span>`:'')+(it.uuid===cur(s)?`<span class="kp-tag on">${T('verbaut','fitted')}</span>`:'');
     return `<button type="button" class="kp-opt${it.uuid===cur(s)?' cur':''}" data-u="${it.uuid}">
       <span class="on">${esc(it.name)}${tags}</span>
