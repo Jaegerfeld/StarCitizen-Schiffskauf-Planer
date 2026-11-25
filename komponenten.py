@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       27.11.2026
+# Geändert:       28.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -55,6 +55,7 @@ TYPES = {
     "SalvageHead": ("Bergungskopf", "Salvage head"),
     "TractorBeam": ("Traktorstrahl", "Tractor beam"),
     "MiningModifier": ("Bergbaumodul", "Mining module"),
+    "SalvageModifier": ("Bergungsmodul", "Salvage module"),
 }
 #: Types that slots() detects on its own; the others only via ``extra`` or as sub-mounts.
 AUTO = {"WeaponGun", "MissileLauncher", "Shield", "PowerPlant", "Cooler", "QuantumDrive", "Radar",
@@ -105,23 +106,30 @@ def subgroups(ports: list | None) -> dict:
     """Sub-mounts of a turret or rack, grouped by kind and size.
 
     One choice in the page applies to all ``n`` mounts of a group, which keeps the
-    tab simple; the game allows mixing.
+    tab simple; the game allows mixing. Salvage modules are the exception: a salvage head
+    usually carries two different ones (e.g. Cinch and Abrade), so each port is a group of
+    its own (``SalvageModifier_1_1``, ``_1_2``) that shares the catalog ``cat``.
 
     Args:
         ports: Ports of the turret or rack (item data or vehicle data).
 
     Returns:
-        ``{"WeaponGun_3": {"k", "type", "size", "n", "def"}}``; ``def`` is the fitted
-        part if the data names one (only vehicle data does).
+        ``{"WeaponGun_3": {"k", "type", "size", "n", "def", "cat"}}``; ``def`` is the
+        fitted part if the data names one (only vehicle data does).
     """
     groups: dict = {}
+    nsal = 0
     for p in ports or []:
         ts, size = ptypes(p), (p.get("sizes") or {}).get("max")
-        typ = next((x for x in ("WeaponGun", "Missile", "MiningModifier") if x in ts), None)
+        typ = next((x for x in ("WeaponGun", "Missile", "MiningModifier", "SalvageModifier") if x in ts), None)
         if not typ or not size:
             continue
         k = f"{typ}_{size}"
-        g = groups.setdefault(k, {"k": k, "type": typ, "size": size, "n": 0, "def": None})
+        if typ == "SalvageModifier":
+            nsal += 1
+            k = f"{k}_{nsal}"
+        g = groups.setdefault(k, {"k": k, "type": typ, "size": size, "n": 0, "def": None,
+                                  "cat": f"{typ}_{size}"})
         g["n"] += 1
         e = p.get("equipped_item") or {}
         if e.get("type") == typ and not g["def"]:
@@ -234,6 +242,14 @@ def _module(it: dict) -> dict:
             "muses": mm.get("charges") if active else None, "mdur": mm.get("duration") if active else None}
 
 
+def _salvage_mod(it: dict) -> dict:
+    """Salvage module: speed, radius and extraction efficiency in percent of the bare head."""
+    s = (it.get("weapon_modifier") or {}).get("salvage") or {}
+    pct = lambda v: round(v * 100) if isinstance(v, (int, float)) else None  # noqa: E731
+    return {"sspd": pct(s.get("salvage_speed_multiplier")), "srad": pct(s.get("radius_multiplier")),
+            "seff": pct(s.get("extraction_efficiency"))}
+
+
 def _tractor(it: dict, use: float | None) -> dict:
     """Tractor beam: maximum pull force (N), range and full-strength distance (m)."""
     tb = it.get("tractor_beam") or {}
@@ -273,6 +289,7 @@ def stats(it: dict) -> dict:
         "Turret": lambda: {"guns": _mounts_text(it)},
         "WeaponMining": lambda: _mining(it, use),
         "MiningModifier": lambda: _module(it),
+        "SalvageModifier": lambda: _salvage_mod(it),
         "SalvageHead": lambda: {"range": (it.get("vehicle_weapon") or {}).get("range"), "pwr": use},
         "TractorBeam": lambda: _tractor(it, use),
     }
@@ -308,7 +325,7 @@ def entry(it: dict) -> dict:
             "loot": bool(it.get("is_lootable")), "craft": bool(it.get("is_craftable")),
             "stats": stats(it), "buy": sh[0] if sh else None, "shops": sh,
             "sub": (list(subgroups(it.get("ports")).values())
-                    if it.get("type") in ("Turret", "MissileLauncher", "WeaponMining") else [])}
+                    if it.get("type") in ("Turret", "MissileLauncher", "WeaponMining", "SalvageHead") else [])}
 
 
 def candidates(typ: str, size: int, use_cache: bool) -> list[dict]:
@@ -434,7 +451,7 @@ def build(use_cache: bool = False) -> dict:
     for c in list(cat.values()):
         for it in c:
             for g in it["sub"]:
-                if g["k"] not in cat:
-                    cat[g["k"]] = candidates(g["type"], g["size"], use_cache)
+                if g["cat"] not in cat:
+                    cat[g["cat"]] = candidates(g["type"], g["size"], use_cache)
     return {"ships": ships, "catalog": cat, "types": TYPES, "patch": patch,
             "built": time.strftime("%d.%m.%Y")}
