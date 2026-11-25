@@ -8,7 +8,7 @@ The planner shows you where each ship sold in game is cheapest and what is sold 
 
 - **By ship:** every ship and vehicle once, with the cheapest location within your filters and the prices elsewhere (**Also:**).
 - **By location:** all offers, grouped by star system and location. The **Comparison** column shows **cheapest**, **only here** or the surcharge in percent.
-- **Components:** swap a ship's shields, power plants, coolers, quantum drive, radar, weapons, turrets and missiles. This is a preview, currently with the **Hornet Mk II**, the **Guardian MX**, the **Hull B** and the **Clipper**.
+- **Components:** swap a ship's shields, power plants, coolers, quantum drive, radar, weapons, turrets and missiles. This is a preview, currently with the **Hornet Mk II**, the **Guardian MX**, the **Hull B**, the **Clipper**, the **Vulture** and the **MOLE**.
 - **Wishlist:** to the right of the list. Here you choose the buying location per ship and see **Buying stops**, **Total** and your budget.
 - On narrow screens, use **Ships** and **Wishlist** at the top to switch between the list and the wishlist.
 
