@@ -62,7 +62,7 @@ Goal: you fit a different shield to the Hornet Mk II and find out where to buy i
 1. Open the **Components** tab. Filters, list and wishlist are hidden here.
 2. Click **Ships …** (the first time **Choose ships**). Under **All ships** you find a ship with **Search**, the **Manufacturer** and **Use** filters and **Sort by** (manufacturer, name, size, use).
    - **View** opens the ship for a try without adding it to your fleet. It appears at the top dashed, marked "preview". You can fit it; **+ add to my ships** takes it over any time, loadout included, **Close preview** discards it. There is only one preview at a time, and it survives a reload.
-   - **+ Fleet** adds the ship to your fleet right away, for example the **Anvil F7C Hornet Mk II**. Your ships appear at the top as buttons; use them to switch. If you own a model twice, add it twice: every ship has its own loadout, and under **Your fleet** you can give it a name.
+   - **+ Fleet** adds the ship to your fleet right away, for example the **Anvil F7C Hornet Mk II**. Your ships appear at the top as buttons; use them to switch. If you own a model twice, add it twice: every ship has its own loadout, and under **Your fleet** you can give it a name. At the top left you see a picture of the shown ship (own screenshot).
 3. In the middle you see a top view. Around it are cards for each slot, with type, size (`S1`, `S2` …) and the fitted part. Lines lead to the mounting point.
 4. Click a card of type **Shield**. A selection opens on the right with all parts that fit this slot.
 5. Each row shows name, price, shop and the values. The numbers with + or - are the difference to the stock part. The tags **Stock** and **fitted** show what comes from the factory and what is fitted right now.

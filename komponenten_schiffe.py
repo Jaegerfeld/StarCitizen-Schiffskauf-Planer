@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       27.11.2026
+# Geändert:       29.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -252,7 +252,8 @@ def perseus() -> dict:
 #: ``panch``: exact positions per port (``pos`` oben/unten/nase, ``low`` = underside, drawn
 #: dashed, ``col`` = card column only). ``extra``: ports the data marks as turret or module
 #: mounts, offered with the parts of ``siblings`` (variants of the same hull). ``show_fixed``:
-#: built-in guns get a card marked "fest" (see ``komponenten.slots``).
+#: built-in guns get a card marked "fest" (see ``komponenten.slots``). ``img``: slug of the
+#: picture to show when the ship has none of its own (a variant with the same hull).
 SHIPS: dict[str, dict] = {
     "f7c-hornet-mk-ii": {
         "short": "Anvil F7C Hornet Mk II", "sil": hornet_mk2,
@@ -442,7 +443,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "l-22-alpha-wolf": {
-        "short": "Kruger L-22 Alpha Wolf", "sil": wolf,
+        "short": "Kruger L-22 Alpha Wolf", "sil": wolf, "img": "l-21-wolf",
         "anch": {},
         # Same hull and ports as the L-21 Wolf.
         "panch": {
@@ -479,7 +480,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "guardian-qi": {
-        "short": "Mirai Guardian QI", "sil": guardian,
+        "short": "Mirai Guardian QI", "sil": guardian, "img": "guardian",
         "anch": {},
         # Same hull and ports as the Guardian.
         "panch": {
