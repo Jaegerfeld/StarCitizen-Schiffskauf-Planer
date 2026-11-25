@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.7.0] – 2026-11-25
+
+### Hinzugefügt
+- **Komponenten: Bergbau- und Bergungswerkzeuge.** Bergbaulaser (MOLE), Bergungsköpfe (Vulture) und Traktorstrahlen (Hull B) lassen sich tauschen wie Waffen, mit Preis, Händler und Unterschied zum Standardteil.
+  - Bergbaulaser: Laserleistung und Reichweite auf der Karte; in der Auswahl dazu die Wirkung auf Widerstand, Instabilität und optimales Fenster (in %, Vorzeichen wie in den Spieldaten). Die Modulplätze (je nach Laser 1–3) stehen als Unterkarte darunter; eine Wahl gilt für alle Plätze des Lasers.
+  - Bergbaumodule: Änderung der Laserleistung, Widerstand, bei aktiven Modulen Ladungen und Dauer.
+  - Traktorstrahlen: Zugkraft, Reichweite und Abstand voller Kraft. Bergungsköpfe: Reichweite; ihre Schabermodule sind laut Spieldaten nicht tauschbar und werden nicht angeboten.
+  - Strombedarf der Werkzeuge zählt in die Energiebilanz.
+- Hull B: Einbauorte der beiden Traktorstrahlen nach der Markierung des Autors.
+
 ## [1.6.0] – 2026-11-25
 
 ### Hinzugefügt
