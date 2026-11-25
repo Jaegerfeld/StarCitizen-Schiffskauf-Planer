@@ -8,7 +8,7 @@ Der Planer zeigt dir, wo jedes ingame kaufbare Schiff am günstigsten ist und wa
 
 - **Nach Schiff:** jedes Schiff und Fahrzeug einmal, mit dem günstigsten Standort innerhalb deiner Filter und den Preisen anderswo (**Auch:**).
 - **Nach Standort:** alle Angebote, gruppiert nach Sternsystem und Standort. Die Spalte **Vergleich** zeigt **günstigster Ort**, **nur hier** oder den Aufschlag in Prozent.
-- **Komponenten:** Schilde, Kraftwerke, Kühler, Quantum-Antrieb, Radar, Waffen, Türme und Raketen eines Schiffs tauschen, dazu Bergbaulaser mit ihren Modulen, Bergungsköpfe und Traktorstrahlen. Das ist eine Vorschau, zurzeit mit **Hornet Mk II**, **Guardian MX**, **Guardian**/**Guardian QI**, **F8C Lightning**, **L-21**/**L-22 Wolf**, **Hull B**, **Clipper**, **Vulture**, **MOLE**, **MOTH** und **Perseus**.
+- **Komponenten:** Schilde, Kraftwerke, Kühler, Quantum-Antrieb, Radar, Waffen, Türme und Raketen eines Schiffs tauschen, dazu Bergbaulaser mit ihren Modulen, Bergungsköpfe und Traktorstrahlen. Das ist eine Vorschau, zurzeit mit **Anvil F7C Hornet Mk II**, **Anvil F8C Lightning**, **Argo MOLE**, **Argo MOTH**, **Drake Clipper**, **Drake Vulture**, **Kruger L-21 Wolf**, **Kruger L-22 Alpha Wolf**, **Mirai Guardian**, **Mirai Guardian MX**, **Mirai Guardian QI**, **MISC Hull B** und **RSI Perseus**.
 - **Merkliste:** rechts neben der Liste. Hier wählst du den Kaufort je Schiff und siehst **Kaufstopps**, **Summe** und dein Budget.
 - Auf schmalen Bildschirmen wechselst du oben mit **Schiffe** und **Merkliste** zwischen Liste und Merkliste.
 
@@ -60,7 +60,9 @@ Ziel: Du suchst zwei Schiffe aus, legst ein Budget fest und findest heraus, wo d
 Ziel: Du baust bei der Hornet Mk II einen anderen Schild ein und findest heraus, wo du ihn kaufst.
 
 1. Öffne den Reiter **Komponenten**. Filter, Liste und Merkliste sind hier ausgeblendet.
-2. Klick auf **Meine Schiffe …** (beim ersten Mal auf **Schiffe wählen**), füg mit **+ Hinzufügen** deine Schiffe hinzu, zum Beispiel die **F7C Hornet Mk II**, und klick auf **Fertig**. Oben stehen jetzt nur deine Schiffe als Knöpfe; damit schaltest du um. Hast du ein Modell zweimal, füg es zweimal hinzu: Jedes Schiff hat seine eigene Bestückung, und unter **Deine Flotte** kannst du ihm einen Namen geben.
+2. Klick auf **Schiffe …** (beim ersten Mal auf **Schiffe wählen**). Unter **Alle Schiffe** findest du ein Schiff über **Suchen**, die Filter **Hersteller** und **Einsatz** und die **Sortierung** (Hersteller, Name, Größe, Einsatz).
+   - **Ansehen** öffnet das Schiff zur Probe, ohne es in die Flotte zu nehmen. Oben steht es gestrichelt mit „Vorschau“. Du kannst es bestücken; mit **+ zu meinen Schiffen** übernimmst du es jederzeit samt Bestückung, mit **Vorschau schließen** verwirfst du es. Es gibt immer nur eine Vorschau, sie übersteht auch ein Neuladen.
+   - **+ Flotte** fügt das Schiff gleich deiner Flotte hinzu, zum Beispiel die **Anvil F7C Hornet Mk II**. Oben stehen deine Schiffe als Knöpfe; damit schaltest du um. Hast du ein Modell zweimal, füg es zweimal hinzu: Jedes Schiff hat seine eigene Bestückung, und unter **Deine Flotte** kannst du ihm einen Namen geben.
 3. In der Mitte siehst du eine Draufsicht. Rundum stehen Karten für jeden Steckplatz, mit Typ, Größe (`S1`, `S2` …) und dem verbauten Teil. Linien führen zum Einbauort.
 4. Klick auf eine Karte vom Typ **Schild**. Rechts öffnet sich eine Auswahl mit allen Teilen, die in diesen Steckplatz passen.
 5. Jede Zeile zeigt Name, Preis, Händler und die Werte. Die Zahlen mit + oder - sind der Unterschied zum Standardteil. Die Marken **Standard** und **verbaut** zeigen, was ab Werk drin ist und was gerade eingebaut ist.
@@ -68,7 +70,7 @@ Ziel: Du baust bei der Hornet Mk II einen anderen Schild ein und findest heraus,
 7. Schließ die Auswahl mit **Schließen**, mit dem × oben rechts, mit Esc, mit einem zweiten Klick auf dieselbe Karte oder mit einem Klick daneben.
 8. Prüf die Summen über der Draufsicht: **Schild-HP gesamt**, **Waffenschaden/s**, **Alpha-Schaden gesamt**, **Raketenschaden gesamt**, **Kühlung** und die Energiebilanz (erzeugt / Bedarf). Pfeile zeigen den Unterschied zum Werkszustand. **⚠ zu wenig** heißt, das Kraftwerk liefert weniger, als die Teile brauchen.
 9. Scroll zur **Einkaufsliste**. Sie nennt für jedes getauschte Teil den günstigsten Händler mit Sternsystem und den Preis. Mit **alle … Händler** klappst du alle Händler mit Preis und Datum der Preismeldung auf.
-10. Deine Bestückung merkt sich der Browser von selbst. Zum Teilen oder für ein anderes Gerät klick auf **Link zu dieser Bestückung kopieren**.
+10. Deine Bestückung merkt sich der Browser von selbst. Zum Teilen oder für ein anderes Gerät klick auf **Link zu dieser Bestückung kopieren**. Wer den Link öffnet, sieht das Schiff als Vorschau und kann es in seine Flotte übernehmen.
 
 ### Tipps
 

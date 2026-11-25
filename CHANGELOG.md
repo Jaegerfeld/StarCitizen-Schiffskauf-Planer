@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.10.0] – 2026-11-27
+
+### Hinzugefügt
+- **Komponenten: Schiffsliste mit Suche, Filter und Sortierung.** Der Dialog heißt jetzt **Schiffe …**; unter **Alle Schiffe** filterst du nach Hersteller und Einsatz (Kampf, Industrie, Erkundung …) und sortierst nach Hersteller, Name, Größe oder Einsatz. Jede Zeile nennt Rolle und Größe aus den Spieldaten.
+- **Komponenten: Schiff ansehen ohne Flotte.** **Ansehen** öffnet ein Schiff zur Probe (oben gestrichelt mit „Vorschau“). Du kannst es bestücken und jederzeit mit **+ zu meinen Schiffen** samt Bestückung übernehmen oder mit **Vorschau schließen** verwerfen. Die Vorschau übersteht ein Neuladen; ein geteilter Link öffnet ebenfalls als Vorschau.
+
+### Geändert
+- **Schiffsnamen nach Schema „Hersteller Schiffsname“** (wie UEX), z. B. „Anvil F7C Hornet Mk II“ statt „Hornet Mk II“, in Knöpfen, Liste und Flotte.
+- Der Link einer Bestückung steht nicht mehr dauerhaft in der Adresszeile; er entsteht beim Kopieren. Vorher öffnete ein Neuladen das gezeigte Schiff erneut als Link-Schiff.
+
 ## [1.9.0] – 2026-11-26
 
 ### Hinzugefügt

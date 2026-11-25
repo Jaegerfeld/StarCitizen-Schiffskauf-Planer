@@ -8,7 +8,7 @@ The planner shows you where each ship sold in game is cheapest and what is sold 
 
 - **By ship:** every ship and vehicle once, with the cheapest location within your filters and the prices elsewhere (**Also:**).
 - **By location:** all offers, grouped by star system and location. The **Comparison** column shows **cheapest**, **only here** or the surcharge in percent.
-- **Components:** swap a ship's shields, power plants, coolers, quantum drive, radar, weapons, turrets and missiles, plus mining lasers with their modules, salvage heads and tractor beams. This is a preview, currently with the **Hornet Mk II**, **Guardian MX**, **Guardian**/**Guardian QI**, **F8C Lightning**, **L-21**/**L-22 Wolf**, **Hull B**, **Clipper**, **Vulture**, **MOLE**, **MOTH** and **Perseus**.
+- **Components:** swap a ship's shields, power plants, coolers, quantum drive, radar, weapons, turrets and missiles, plus mining lasers with their modules, salvage heads and tractor beams. This is a preview, currently with the **Anvil F7C Hornet Mk II**, **Anvil F8C Lightning**, **Argo MOLE**, **Argo MOTH**, **Drake Clipper**, **Drake Vulture**, **Kruger L-21 Wolf**, **Kruger L-22 Alpha Wolf**, **Mirai Guardian**, **Mirai Guardian MX**, **Mirai Guardian QI**, **MISC Hull B** and **RSI Perseus**.
 - **Wishlist:** to the right of the list. Here you choose the buying location per ship and see **Buying stops**, **Total** and your budget.
 - On narrow screens, use **Ships** and **Wishlist** at the top to switch between the list and the wishlist.
 
@@ -60,7 +60,9 @@ Goal: you pick two ships, set a budget and find out where to buy them for the lo
 Goal: you fit a different shield to the Hornet Mk II and find out where to buy it.
 
 1. Open the **Components** tab. Filters, list and wishlist are hidden here.
-2. Click **My ships …** (the first time **Choose ships**), add your ships with **+ Add**, for example the **F7C Hornet Mk II**, and click **Done**. Only your ships now appear at the top as buttons; use them to switch. If you own a model twice, add it twice: every ship has its own loadout, and under **Your fleet** you can give it a name.
+2. Click **Ships …** (the first time **Choose ships**). Under **All ships** you find a ship with **Search**, the **Manufacturer** and **Use** filters and **Sort by** (manufacturer, name, size, use).
+   - **View** opens the ship for a try without adding it to your fleet. It appears at the top dashed, marked "preview". You can fit it; **+ add to my ships** takes it over any time, loadout included, **Close preview** discards it. There is only one preview at a time, and it survives a reload.
+   - **+ Fleet** adds the ship to your fleet right away, for example the **Anvil F7C Hornet Mk II**. Your ships appear at the top as buttons; use them to switch. If you own a model twice, add it twice: every ship has its own loadout, and under **Your fleet** you can give it a name.
 3. In the middle you see a top view. Around it are cards for each slot, with type, size (`S1`, `S2` …) and the fitted part. Lines lead to the mounting point.
 4. Click a card of type **Shield**. A selection opens on the right with all parts that fit this slot.
 5. Each row shows name, price, shop and the values. The numbers with + or - are the difference to the stock part. The tags **Stock** and **fitted** show what comes from the factory and what is fitted right now.
