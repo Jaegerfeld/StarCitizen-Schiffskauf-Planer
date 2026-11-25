@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.8.0] – 2026-11-25
+
+### Hinzugefügt
+- **Komponenten: F8C Lightning, MOTH, L-21 Wolf, L-22 Alpha Wolf, Guardian und Guardian QI.** Eigene Draufsichten nach eigenen Screenshots, Einbauorte vom Autor markiert. L-22 und Guardian QI nutzen die Zeichnung ihres Grundmodells (gleiche Steckplätze laut Spieldaten). Damit hat der Reiter 12 Schiffe.
+  - F8C: sechs Kanonen an Nase und Flügeln (Unterseite), Kugelturm mit zwei Waffen, zwei Raketenracks.
+  - MOTH: zwei Kanonen, drei Bergungsköpfe, Raketenturm oben.
+  - Wolf: zwei Kanonen unter dem Rumpf, zwei Raketenracks.
+  - Guardian: zwei Kanonen S5, vier Raketenracks (zwei oben, zwei unten).
+- **Fest verbaute Raketenracks** (F8C, Wolf, Raketenturm der MOTH): Das Rack selbst ist laut Spieldaten nicht tauschbar, die Raketen darin schon. Solche Racks erscheinen jetzt als Karte mit „fest“; die Auswahl zeigt nur das verbaute Rack, die Raketen wählst du in der Karte darunter.
+
 ## [1.7.0] – 2026-11-25
 
 ### Hinzugefügt
