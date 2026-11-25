@@ -324,9 +324,12 @@ def attach_uex(data: dict, vehicles: list[dict]) -> list[str]:
     Returns:
         Names of ships without a UEX match (their ``uex`` is None).
     """
+    # The wiki name is either UEX's short name ("Guardian MX") or its full name with maker ("MISC Hull B").
     by = {}
     for v in vehicles:
         by.setdefault((v.get("name") or "").lower(), v)
+    for v in vehicles:
+        by.setdefault((v.get("name_full") or "").lower(), v)
     missing = []
     for s in data["ships"]:
         v = by.get(s["name"].lower())

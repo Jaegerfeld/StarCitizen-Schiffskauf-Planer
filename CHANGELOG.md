@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.5.0] – 2026-11-25
+
+### Hinzugefügt
+- **Komponenten: MISC Hull B.** Eigene Draufsicht nach eigenem Screenshot; Einbauorte der Waffen vom Autor markiert: zwei Kanonen S3 am Kinn (Unterseite), ferngesteuerter Turm mit zwei S3-Waffen oben, Raketenrack S6 (8 × Thunderbolt III) unter der Nase; Schilde, Kühler, Kraftwerk, Quantum-Antrieb und Radar im Rumpf. Die beiden Traktorstrahlen gehören noch nicht zum Reiter.
+
+### Behoben
+- Gemeinsame Flotte: Schiffe, die das Wiki mit Hersteller nennt („MISC Hull B“), bekommen jetzt ihre UEX-ID über den vollen UEX-Namen – vorher fehlte die Zuordnung, und die Hull B wäre nicht ins Fracht-Logbuch gekommen.
+
 ## [1.4.0] – 2026-11-24
 
 ### Hinzugefügt
