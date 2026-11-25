@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.12.0] – 2026-11-29
+
+### Hinzugefügt
+- **Komponenten: Bild des Schiffs.** Oben links neben den Summen steht eine Seitenansicht des gezeigten Schiffs, zugeschnitten aus eigenen Screenshots (je etwa 20–25 KB, in die Seite eingebettet, also auch offline da). L-22 Alpha Wolf und Guardian QI zeigen das Bild ihres Schwestermodells mit gleichem Rumpf; die Bildunterschrift sagt das. Schmale Bildschirme stapeln Bild und Summen.
+
 ## [1.11.0] – 2026-11-28
 
 ### Hinzugefügt

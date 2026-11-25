@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       28.11.2026
+# Geändert:       29.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -65,7 +65,10 @@ KP_HTML = r"""
       <button type="button" class="btn primary" id="kp-mineok"><span class="de">Fertig</span><span class="en">Done</span></button></div>
   </dialog>
   <div id="kp-body">
-    <div class="kp-sum" id="kp-sum"></div>
+    <div class="kp-top" id="kp-top">
+      <figure class="kp-photo" id="kp-photo"><img id="kp-photoimg" alt="" width="600" height="300"><figcaption id="kp-photocap"></figcaption></figure>
+      <div class="kp-sum" id="kp-sum"></div>
+    </div>
     <div class="kp-stage" id="kp-stage">
       <div class="kp-centerrow kp-toprow" id="kp-colT"></div>
       <div class="kp-col L" id="kp-colL"></div>
@@ -157,7 +160,15 @@ KP_CSS = r"""
   .kp-mf{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
   #kpPanel .kp-ships button{min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:600 14px var(--body);cursor:pointer}
   #kpPanel .kp-ships button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-  #kpPanel .kp-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0 18px}
+  /* Picture of the shown ship (own side screenshot) at the top left, the totals next to it. */
+  #kpPanel .kp-top{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px;align-items:start;margin:12px 0 18px}
+  #kpPanel .kp-top.nophoto{grid-template-columns:minmax(0,1fr)} #kpPanel .kp-top.nophoto .kp-photo{display:none}
+  #kpPanel .kp-photo{margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+  #kpPanel .kp-photo img{display:block;width:100%;height:auto;aspect-ratio:2/1;object-fit:cover}
+  #kpPanel .kp-photo figcaption{padding:5px 10px 6px;font-size:12px;color:var(--muted);line-height:1.35}
+  #kpPanel .kp-photo figcaption b{color:var(--ink);font-weight:700}
+  @media (max-width:640px){#kpPanel .kp-top{grid-template-columns:minmax(0,1fr)} #kpPanel .kp-photo{max-width:360px}}
+  #kpPanel .kp-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:0}
   #kpPanel .kp-sum>div{background:var(--panel);padding:10px 14px}
   #kpPanel .kp-sum .k{font-family:var(--disp);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
   #kpPanel .kp-sum .v{font-family:var(--disp);font-size:24px;font-weight:700}
@@ -345,6 +356,10 @@ function linkUrl(){const p=new URLSearchParams({kp:ship.slug}); for(const s of S
 /* ---------- drawing ---------- */
 // Own stylised top view of the ship from the path data.
 function drawShip(){const g=ship.sil; const [x,y,w,h]=g.viewBox.split(' ');
+  // Own side screenshot of the ship (or of the variant with the same hull), when there is one.
+  $k('top').classList.toggle('nophoto',!ship.img);
+  if(ship.img){$k('photoimg').src=ship.img; $k('photoimg').alt=`${T('Seitenansicht','Side view')} ${nm(ship)}`;
+    $k('photocap').innerHTML=`<b>${esc(nm(ship))}</b><br>${ship.imgOf?T(`Bild: ${esc(ship.imgOf)} (gleicher Rumpf)`,`Picture: ${esc(ship.imgOf)} (same hull)`):T('Eigener Screenshot','Own screenshot')}`;}
   $k('stage').classList.toggle('wide',+w>1.2*+h);
   $k('ship').innerHTML=`<svg id="kp-svg" viewBox="${g.viewBox}" role="img" aria-label="${esc(T('Draufsicht','Top view'))} ${esc(nm(ship))}">
     <defs><pattern id="kp-grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0H0V25" fill="none" stroke="var(--line)" stroke-width=".7"/></pattern></defs>

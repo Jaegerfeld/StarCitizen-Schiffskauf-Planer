@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       28.11.2026
+# Geändert:       29.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -24,6 +24,7 @@ listed in a ship's ``extra`` get their own key ``<slug>:<port>``.
 """
 from __future__ import annotations
 
+import base64
 import json
 import pathlib
 import time
@@ -36,6 +37,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 #: Wiki API base; the API rejects requests without a User-Agent.
 API = "https://api.star-citizen.wiki/api"
 UA = {"User-Agent": "sc-tools-schiffskauf-planer (github.com/Jaegerfeld)"}
+#: Ship pictures (cropped own side screenshots, see schiffsbilder.py in the author's working folder).
+PICS = HERE / "bilder" / "komponenten"
 #: Local cache for ``--cache`` builds (gitignored).
 CACHE = HERE / "kp_cache"
 
@@ -411,6 +414,24 @@ def attach_uex(data: dict, vehicles: list[dict]) -> list[str]:
     return missing
 
 
+def picture(slug: str, cfg: dict) -> tuple[str | None, str | None]:
+    """Picture of a ship as data URI, and the model shown if it is another variant.
+
+    Args:
+        slug: Slug of the ship.
+        cfg: Its entry in ``SHIPS`` (``img``: slug of the picture of another variant).
+
+    Returns:
+        ``(data URI or None, name of the pictured model or None)``.
+    """
+    key = cfg.get("img", slug)
+    f = PICS / f"{key}.jpg"
+    if not f.exists():
+        return None, None
+    uri = "data:image/jpeg;base64," + base64.b64encode(f.read_bytes()).decode("ascii")
+    return uri, (SHIPS[key]["short"] if key != slug and key in SHIPS else None)
+
+
 def build(use_cache: bool = False) -> dict:
     """Build the data of the components tab for all ships.
 
@@ -443,7 +464,8 @@ def build(use_cache: bool = False) -> dict:
             sl.append(s)
             cat[s["cat"]] = c
         sil = cfg["sil"]()
-        ships.append({"slug": slug, "short": cfg["short"], "name": v["name"],
+        img, img_of = picture(slug, cfg)
+        ships.append({"img": img, "imgOf": img_of, "slug": slug, "short": cfg["short"], "name": v["name"],
                       "maker": (v.get("manufacturer") or {}).get("name") or "", "sil": sil,
                       "role": v.get("role"), "career": v.get("career"), "size": v.get("size_class"),
                       "anch": cfg["anch"], "panch": cfg["panch"], "slots": sl})
