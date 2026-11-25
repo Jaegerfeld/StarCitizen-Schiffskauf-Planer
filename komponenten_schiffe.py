@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       26.11.2026
+# Geändert:       27.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -247,6 +247,7 @@ def perseus() -> dict:
 
 
 #: Ships of the tab, in display order. Keys are slugs of the Star Citizen Wiki API.
+#: ``short``: display name "[Hersteller] [Schiffsname]" (as UEX ``name_full``; fallback if UEX has no match);
 #: ``anch``: generic mount positions per component type and side (L/R/C list);
 #: ``panch``: exact positions per port (``pos`` oben/unten/nase, ``low`` = underside, drawn
 #: dashed, ``col`` = card column only). ``extra``: ports the data marks as turret or module
@@ -254,7 +255,7 @@ def perseus() -> dict:
 #: built-in guns get a card marked "fest" (see ``komponenten.slots``).
 SHIPS: dict[str, dict] = {
     "f7c-hornet-mk-ii": {
-        "short": "Hornet Mk II", "sil": hornet_mk2,
+        "short": "Anvil F7C Hornet Mk II", "sil": hornet_mk2,
         # Weapons as marked by the author on his own screenshot (15.11.2026), rest generic.
         "anch": {"WeaponGun": {"L": [188, 430], "R": [654, 430]},
                  "MissileLauncher": {"L": [290, 430], "R": [540, 430]},
@@ -270,7 +271,7 @@ SHIPS: dict[str, dict] = {
                      "f7c-r-hornet-tracker-mk-ii"],
     },
     "guardian-mx": {
-        "short": "Guardian MX", "sil": guardian_mx,
+        "short": "Mirai Guardian MX", "sil": guardian_mx,
         "anch": {},
         # Weapons 1-6 as marked by the author (16.11.2026, top, front and side view).
         "panch": {
@@ -290,7 +291,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "misc-hull-b": {
-        "short": "Hull B", "sil": hull_b,
+        "short": "MISC Hull B", "sil": hull_b,
         "anch": {},
         # Weapons 1-4 and tractor beams 5/6 as marked by the author (25.11.2026, top, side and
         # front view). Other components generic in the hull.
@@ -314,7 +315,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "clipper": {
-        "short": "Clipper", "sil": clipper,
+        "short": "Drake Clipper", "sil": clipper,
         "anch": {},
         # All 12 weapons as marked by the author (25.11.2026), all on the underside. The data does
         # not say which rack sits inside: racks are numbered from the hull outwards (left_1..3,
@@ -342,7 +343,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "vulture": {
-        "short": "Vulture", "sil": vulture,
+        "short": "Drake Vulture", "sil": vulture,
         "anch": {},
         # Guns 1/2 and salvage heads 3/4 as marked by the author (25.11.2026).
         "panch": {
@@ -362,7 +363,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "mole": {
-        "short": "MOLE", "sil": mole,
+        "short": "Argo MOLE", "sil": mole,
         "anch": {},
         # Guns 1/2 and mining lasers 3-5 as marked by the author (25.11.2026).
         "panch": {
@@ -382,7 +383,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "f8c-lightning": {
-        "short": "F8C Lightning", "sil": f8c,
+        "short": "Anvil F8C Lightning", "sil": f8c,
         "anch": {},
         # Marked by the author 25.11.2026: 1-6 guns (underside), 7 turret, 8/9 built-in racks.
         "panch": {
@@ -405,7 +406,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "moth": {
-        "short": "MOTH", "sil": moth,
+        "short": "Argo MOTH", "sil": moth,
         "anch": {},
         # Marked by the author 25.11.2026: guns, 3 salvage heads, top missile turret (built-in launcher).
         "panch": {
@@ -423,7 +424,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "l-21-wolf": {
-        "short": "L-21 Wolf", "sil": wolf,
+        "short": "Kruger L-21 Wolf", "sil": wolf,
         "anch": {},
         # Marked by the author 25.11.2026 (same ports as the L-22): guns underside, built-in racks.
         "panch": {
@@ -441,7 +442,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "l-22-alpha-wolf": {
-        "short": "L-22 Alpha Wolf", "sil": wolf,
+        "short": "Kruger L-22 Alpha Wolf", "sil": wolf,
         "anch": {},
         # Same hull and ports as the L-21 Wolf.
         "panch": {
@@ -459,7 +460,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "guardian": {
-        "short": "Guardian", "sil": guardian,
+        "short": "Mirai Guardian", "sil": guardian,
         "anch": {},
         # Marked by the author 25.11.2026: guns, racks top (3/4) and bottom (5/6).
         "panch": {
@@ -478,7 +479,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "guardian-qi": {
-        "short": "Guardian QI", "sil": guardian,
+        "short": "Mirai Guardian QI", "sil": guardian,
         "anch": {},
         # Same hull and ports as the Guardian.
         "panch": {
@@ -497,7 +498,7 @@ SHIPS: dict[str, dict] = {
         },
     },
     "perseus": {
-        "short": "Perseus", "sil": perseus, "show_fixed": True,
+        "short": "RSI Perseus", "sil": perseus, "show_fixed": True,
         "anch": {},
         # Marked by the author 25.11.2026 (top, side and front view); numbers of the top view
         # matched to the side and front view on 26.11.2026. Manned turrets: S8 cannons built in,

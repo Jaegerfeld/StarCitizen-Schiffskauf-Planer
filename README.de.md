@@ -21,7 +21,7 @@ Die App ist **eine einzige HTML-Datei**, ohne Installation und ohne Server. Die 
 - **Merkliste:** Kaufort je Schiff wählen, Kaufstopps, Summe und Budget-Rest sehen.
 - **Komponenten (Vorschau):** Schilde, Kraftwerke, Kühler, Quantum, Radar, Waffen, Türme, Raketen, Bergbaulaser mit Modulen, Bergungsköpfe und Traktorstrahlen eines
   Schiffs tauschen, nur passende Teile, mit Summen und Einkaufsliste (günstigster Händler, alle Händler zum
-  Aufklappen). Zunächst F7C Hornet Mk II, Guardian MX, Guardian/QI, F8C Lightning, L-21/L-22 Wolf, MISC Hull B, Drake Clipper, Drake Vulture, Argo MOLE, MOTH und RSI Perseus; eigene Flotte („Meine Schiffe“, gleiche Modelle mehrfach möglich), Bestückung je Schiff im Browser gespeichert und als Link teilbar; Waffen mit Schaden/s, Alpha und Reichweite.
+  Aufklappen). Zunächst 13 Schiffe von Anvil, Argo, Drake, Kruger, Mirai, MISC und RSI (Namen nach Schema „Hersteller Schiffsname“); Schiffsliste mit Suche, Filter und Sortierung, Ansehen zur Probe ohne Flotte; eigene Flotte (gleiche Modelle mehrfach möglich), Bestückung je Schiff im Browser gespeichert und als Link teilbar; Waffen mit Schaden/s, Alpha und Reichweite.
 - **Tägliche Daten:** Die Online-Version wird jeden Tag neu gebaut. Der Knopf in der App lädt deren
   `data.json`, auch aus einer Offline-Kopie.
 

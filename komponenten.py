@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       26.11.2026
+# Geändert:       27.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -428,6 +428,7 @@ def build(use_cache: bool = False) -> dict:
         sil = cfg["sil"]()
         ships.append({"slug": slug, "short": cfg["short"], "name": v["name"],
                       "maker": (v.get("manufacturer") or {}).get("name") or "", "sil": sil,
+                      "role": v.get("role"), "career": v.get("career"), "size": v.get("size_class"),
                       "anch": cfg["anch"], "panch": cfg["panch"], "slots": sl})
     # Catalogs of the sub-mounts (weapons in turrets, missiles in racks).
     for c in list(cat.values()):
