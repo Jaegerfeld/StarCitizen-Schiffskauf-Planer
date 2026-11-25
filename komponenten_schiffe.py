@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       16.11.2026
+# Geändert:       25.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -86,6 +86,28 @@ def guardian_mx() -> dict:
     return {"viewBox": "26 0 790 950", "outline": outline, "details": det, "circles": []}
 
 
+def hull_b() -> dict:
+    """MISC Hull B, silhouette v1 (left half, mirrored at x = 1724), accepted on 25.11.2026.
+
+    Returns:
+        Dict with viewBox, outline path, detail paths and circles (none).
+    """
+    ox, oy, cx = 1301, 110, 1724
+    left = [(1724, 158), (1692, 168), (1665, 205), (1648, 260), (1636, 305), (1562, 325), (1556, 410),
+            (1572, 440), (1572, 560), (1548, 640), (1545, 745), (1560, 760), (1560, 880), (1572, 940),
+            (1600, 1030), (1632, 1085), (1650, 1095), (1724, 1095)]
+    det = [_path([(1636, 305), (1812, 305), (1804, 455), (1644, 455)], ox, oy),        # canopy
+           _path([(1698, 460), (1750, 460), (1750, 700), (1698, 700)], ox, oy),        # spine channel
+           _path([(1655, 760), (1793, 760), (1785, 860), (1663, 860)], ox, oy),        # deck hatch
+           _path([(1600, 720), (1848, 720)], ox, oy, False),                           # deck edge
+           _path([(1630, 980), (1818, 980)], ox, oy, False)]                           # stern deck
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det += [_path(side([(1572, 440), (1640, 470), (1645, 700)]), ox, oy, False),   # side panel
+                _path(side([(1565, 750), (1590, 750), (1590, 845), (1565, 845)]), ox, oy)]  # tractor housing
+    outline = _path(left + _mirror(left[1:-1], cx)[::-1], ox, oy)
+    return {"viewBox": "214 28 420 978", "outline": outline, "details": det, "circles": []}
+
+
 #: Ships of the tab, in display order. Keys are slugs of the Star Citizen Wiki API.
 #: ``anch``: generic mount positions per component type and side (L/R/C list);
 #: ``panch``: exact positions per port (``pos`` oben/unten/nase, ``low`` = underside, drawn
@@ -126,6 +148,28 @@ SHIPS: dict[str, dict] = {
             "hardpoint_cooler_s1": {"xy": [395, 640], "col": "L"},
             "hardpoint_cooler_s2": {"xy": [447, 640], "col": "R"},
             "hardpoint_quantum_drive": {"xy": [437, 820]},
+        },
+    },
+    "misc-hull-b": {
+        "short": "Hull B", "sil": hull_b,
+        "anch": {},
+        # Weapons 1-4 as marked by the author (25.11.2026, top, side and front view); the
+        # tractor beams (5, 6) are not part of the tab yet. Other components generic in the hull.
+        "panch": {
+            "hardpoint_weapon_left": {"xy": [329, 190], "pos": "unten", "low": True},
+            "hardpoint_weapon_right": {"xy": [517, 190], "pos": "unten", "low": True},
+            "weapon_left": {"xy": [410, 510], "pos": "oben"},
+            "weapon_right": {"xy": [436, 510], "pos": "oben"},
+            "hardpoint_missile_rack": {"xy": [423, 65], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [423, 140]},
+            "hardpoint_shield_generator_front_left": {"xy": [299, 370], "col": "L"},
+            "hardpoint_shield_generator_front_right": {"xy": [547, 370], "col": "R"},
+            "hardpoint_shield_generator_rear_left": {"xy": [299, 590], "col": "L"},
+            "hardpoint_shield_generator_rear_right": {"xy": [547, 590], "col": "R"},
+            "hardpoint_cooler_left": {"xy": [319, 790], "col": "L"},
+            "hardpoint_cooler_right": {"xy": [529, 790], "col": "R"},
+            "hardpoint_power_plant": {"xy": [423, 690]},
+            "hardpoint_quantum_drive": {"xy": [423, 890]},
         },
     },
 }
