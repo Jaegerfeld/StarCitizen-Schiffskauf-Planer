@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.14.1] – 2026-11-26
+
+### Geändert
+- **Die Adresse dieses Tools leitet ins SC Cockpit weiter.** Der Schiffskauf-Planer ist ins [SC Cockpit](https://jaegerfeld.github.io/sc-cockpit/) eingezogen: Flotte (Meine Schiffe, Schiffskauf). Wer https://jaegerfeld.github.io/StarCitizen-Schiffskauf-Planer/ öffnet, landet dort im passenden Bereich; online sind deine Daten dieselben, weil Cockpit und Tool denselben Browser-Speicher nutzen. Bestückungs-Links (`#kp=…`) öffnen die Bestückung im Cockpit.
+- Diese Seite selbst bleibt erreichbar: https://jaegerfeld.github.io/StarCitizen-Schiffskauf-Planer/app.html. Am Tool hat sich nichts geändert.
+
 ## [1.14.0] – 2026-11-26
 
 ### Hinzugefügt
