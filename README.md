@@ -5,7 +5,7 @@
 A ship purchase planner for *Star Citizen*: see **where each ship is cheapest** and **what is sold at
 your location**, then collect your picks on a wishlist with a budget.
 
-**▶ Use online:** https://jaegerfeld.github.io/StarCitizen-Schiffskauf-Planer/
+**▶ Use online:** in the SC Cockpit: https://jaegerfeld.github.io/sc-cockpit/#/flotte/schiffskauf · single page: https://jaegerfeld.github.io/StarCitizen-Schiffskauf-Planer/app.html
 **▶ Use offline:** download [`SC_Schiffskauf_Planer.html`](SC_Schiffskauf_Planer.html) and open it (double-click).
 
 The whole app is **one self-contained HTML file**: no install, no server. The interface is
