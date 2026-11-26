@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       29.11.2026
+# Geändert:       26.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -84,6 +84,7 @@ KP_HTML = r"""
         <button type="button" class="btn" id="kp-copylink"><span class="de">Link zu dieser Bestückung kopieren</span><span class="en">Copy link to this loadout</span></button>
         <button type="button" class="btn" id="kp-resetall"><span class="de">Alles auf Standard</span><span class="en">Reset all to stock</span></button>
       </div>
+      <div class="kp-merk" id="kp-merk" hidden></div>
     </section>
     <p class="kp-foot"><span class="de">Spieldaten: Star Citizen Wiki API, Kaufpreise: UEX. Draufsicht: eigene, stilisierte Zeichnung nach eigenem Screenshot, nicht maßstäblich. * Energiebilanz vereinfacht: alle Verbraucher außer dem Quantum-Antrieb gleichzeitig an, ohne Waffen-Energiepool.</span><span class="en">Game data: Star Citizen Wiki API, prices: UEX. Top view: own stylised drawing from an own screenshot, not to scale. * Simplified power balance: all consumers except the quantum drive on at once, without the weapon power pool.</span> <span id="kp-stand"></span></p>
   </div>
@@ -211,6 +212,8 @@ KP_CSS = r"""
   #kpPanel .kp-shop .note{color:var(--muted);font-size:12px}
   #kpPanel .kp-acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   #kpPanel .kp-acts .btn{min-height:44px}
+  #kpPanel .kp-merk{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+  #kpPanel .kp-merk p{margin:0} #kpPanel .kp-merk .btn{min-height:44px}
   #kpPanel .kp-sys{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:4px;white-space:nowrap}
   #kpPanel details.kp-more{margin-top:4px;font-size:13px}
   #kpPanel details.kp-more>summary{cursor:pointer;color:var(--accent);min-height:28px;display:inline-flex;align-items:center;list-style:none}
@@ -298,7 +301,8 @@ const KEY='scsk_kp', LINK='__link';
 const model=slug=>KP.ships.find(x=>x.slug===slug);
 const byUex={}; for(const x of KP.ships) if(x.uex!=null) byUex[x.uex]=x;
 // probe: {slug, fit} of a ship looked at without being in the fleet (one at a time).
-const DB=(()=>{const d=load(KEY)||{}, db={v:3,fit:d.fit||{},last:d.last||null,probe:d.probe||null};
+// merk: {shipId:true} for ships whose shopping list is kept as reminders (cockpit only).
+const DB=(()=>{const d=load(KEY)||{}, db={v:3,fit:d.fit||{},last:d.last||null,probe:d.probe||null,merk:d.merk||{}};
   // Earlier stands of this tab kept their own ship list (v1: one tick per model, v2: fleet); move it into the shared fleet once.
   const old=Array.isArray(d.fleet)?d.fleet:(d.mine||[]).map(s=>({id:s,slug:s,name:''}));
   const add=old.map(f=>({f,m:model(f.slug)})).filter(x=>x.m&&x.m.uex!=null).map(({f,m})=>({id:f.id,uex:m.uex,model:m.model,name:f.name||''}));
@@ -390,7 +394,7 @@ function render(){
   box.querySelectorAll('.kp-card').forEach(c=>c.addEventListener('click',()=>{if(open&&open.id===c.dataset.id) closeDrawer(); else openDrawer(c.dataset.id);}));
   renderShips();
   $k('stand').textContent=`· ${T('Spielstand','Game version')} ${KP.patch||'–'} · ${T('Stand','As of')} ${KP.built}`;
-  renderSum(); renderShop(); requestAnimationFrame(wires); highlight();
+  renderSum(); renderShop(); renderMerk(); requestAnimationFrame(wires); highlight();
 }
 
 /* ---------- totals and shopping list ---------- */
@@ -425,6 +429,23 @@ function renderShop(){
   out.innerHTML=`<div class="tablewrap"><table><thead><tr><th>${T('Steckplatz','Slot')}</th><th>${T('Neu','New')}</th><th>${T('Händler (günstigster zuerst)','Shop (cheapest first)')}</th><th class="num">${T('Preis','Price')}</th></tr></thead><tbody>${rows}
    <tr class="tot"><td colspan="3">${T('Summe','Total')}${missing?` (${missing} ${T('ohne Kaufpreis','without price')})`:''}</td><td class="p">${fmt(sum)} aUEC</td></tr></tbody></table></div>`;
 }
+
+/* ---------- reminders (only inside the cockpit, where window.SCData exists) ---------- */
+// The shopping list as reminder entries: one per part, counts added up, with the cheapest shop.
+function merkList(){const by={};
+  for(const s of SL){const u=state[s.id]; if(!u||u===stock(s)) continue; const it=item(u); if(!it) continue;
+    const e=by[u]||(by[u]={key:u,text:it.name,n:0,...(it.buy?{price:it.buy.price,shop:it.buy.shop+(it.buy.sys?` (${it.buy.sys})`:'')}:{})}); e.n+=s.n||1;}
+  return Object.values(by);}
+// Ships that keep reminders: open reminders follow the shopping list, ticked ones stay (SCData.syncAuto).
+function syncMerk(){if(window.SCData&&inst&&inst!==LINK&&DB.merk[inst]) SCData.syncAuto('kp',inst,merkList());}
+function renderMerk(){const box=$k('merk'); if(!box) return; if(!window.SCData){box.hidden=true; return;} box.hidden=false;
+  if(!inst||inst===LINK){box.innerHTML=`<p class="note">${T('Merker gibt es für Schiffe deiner Flotte. Füg dieses Schiff dazu oben mit „+ zu meinen Schiffen“ hinzu.','Reminders are kept for ships of your fleet. Add this ship with “+ add to my ships” above first.')}</p>`; return;}
+  const n=merkList().length;
+  box.innerHTML=DB.merk[inst]
+    ?`<p><b>✓ ${T('Die Merker folgen dieser Einkaufsliste.','The reminders follow this shopping list.')}</b> <span class="note">${T('Offene Merker passen sich an, abgehakte bleiben.','Open reminders follow, ticked ones stay.')}</span></p>
+      <button type="button" class="btn" id="kp-merkoff">${T('Merker nicht mehr führen','Stop keeping reminders')}</button>`
+    :`<button type="button" class="btn primary" id="kp-merkon"${n?'':' disabled'}>${T('Einkaufsliste als Merker übernehmen','Take the shopping list over as reminders')}</button>
+      ${n?'':`<span class="note">${T('Tausch zuerst ein Teil, dann gibt es etwas zu merken.','Swap a part first, then there is something to remember.')}</span>`}`;}
 
 /* ---------- lines from card to mount ---------- */
 function wires(){
@@ -478,7 +499,7 @@ function fillList(){
 // Fit a part; a new turret or rack resets the choices for its sub-mounts.
 function choose(u){if(!open.sub&&state[open.id]!==u) dropSubs(open.id); state[open.id]=u; changed();}
 function dropSubs(id){for(const k in state) if(k.startsWith(id+'|')) delete state[k];}
-function changed(){keepFit(); render(); open=open&&(SL.find(s=>s.id===open.id)||open); if(open) fillList();}
+function changed(){keepFit(); syncMerk(); render(); open=open&&(SL.find(s=>s.id===open.id)||open); if(open) fillList();}
 function highlight(){box.querySelectorAll('.kp-card').forEach(c=>c.classList.toggle('sel',!!open&&c.dataset.id===open.id));
   box.querySelectorAll('#kp-wires path').forEach(p=>p.classList.toggle('on',!!open&&p.dataset.id===open.id));}
 function closeDrawer(){const d=$k('drawer'); d.classList.remove('open'); d.setAttribute('aria-hidden','true'); document.body.classList.remove('kp-open'); const id=open?.id; open=null; highlight();
@@ -494,6 +515,10 @@ $k('onlybuy').addEventListener('change',fillList);
 $k('dreset').addEventListener('click',()=>{delete state[open.id]; if(!open.sub) dropSubs(open.id); changed();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open) closeDrawer();});
 $k('resetall').addEventListener('click',()=>{for(const k in state) delete state[k]; changed();});
+$k('merk').addEventListener('click',e=>{if(!window.SCData||!inst||inst===LINK) return;
+  if(e.target.closest('#kp-merkon')){DB.merk[inst]=true; persist(); syncMerk(); renderMerk();}
+  // Stopping drops the open reminders of this ship; ticked ones stay in the list.
+  else if(e.target.closest('#kp-merkoff')){delete DB.merk[inst]; persist(); SCData.syncAuto('kp',inst,[]); renderMerk();}});
 $k('copylink').addEventListener('click',async e=>{const b=e.currentTarget, t=b.innerHTML;
   try{await navigator.clipboard.writeText(linkUrl()); b.textContent=T('Link kopiert ✓','Link copied ✓');}catch(err){b.textContent=T('Kopieren nicht möglich, Adresse aus der Adresszeile nehmen','Copy failed, take the address bar URL');}
   setTimeout(()=>{b.innerHTML=t;},1800);});
@@ -574,7 +599,8 @@ $k('fleet').addEventListener('click',e=>{const b=e.target.closest('[data-del]');
   if(SCFleet.cargoPosts(f.id)){alert(T(`„${label(f)}“ hat im Fracht-Logbuch noch Fracht an Bord. Buch sie dort zuerst aus oder verschieb sie, dann kannst du das Schiff entfernen.`,`"${label(f)}" still has cargo aboard in the cargo ledger. Book it out or move it there first, then you can remove the ship.`)); return;}
   const fit=DB.fit[f.id]?T(' Seine Bestückung hier geht verloren.',' Its loadout here is lost.'):'';
   if(!confirm(T(`„${label(f)}“ aus deiner Flotte entfernen? Es verschwindet auch aus dem Fracht-Logbuch.${fit}`,`Remove "${label(f)}" from your fleet? It also disappears from the cargo ledger.${fit}`))) return;
-  SCFleet.remove(f.id); delete DB.fit[f.id]; delete STATE[f.id]; if(DB.last===f.id) DB.last=null; persist(); renderMine();});
+  SCFleet.remove(f.id); delete DB.fit[f.id]; delete STATE[f.id]; if(DB.merk[f.id]){delete DB.merk[f.id]; if(window.SCData) SCData.syncAuto('kp',f.id,[]);}
+  if(DB.last===f.id) DB.last=null; persist(); renderMine();});
 $k('fleet').addEventListener('input',e=>{const i=e.target.closest('[data-name]'); if(!i) return; const f=fleetEntry(i.dataset.name);
   if(f) SCFleet.upsert({...f,name:i.value});});
 $k('mineq').addEventListener('input',renderMine);
@@ -605,7 +631,7 @@ else{if(DB.probe&&model(DB.probe.slug)){linkSlug=DB.probe.slug; STATE[LINK]={...
   if(linkSlug&&(DB.last===LINK||!f)){inst=LINK; ship=model(linkSlug); state=STATE[LINK];}
   else if(f){inst=f.id; ship=model(slugOf(f)); state=loadFit(f.id);} else state={};}
 setup(); drawShip(); render();
-// A loadout link opens the tab (S and the page's render() are the ship list's).
-if(fromLink){S.view='kp'; window.render();}
+// A loadout link opens the tab (S and the page's render() are the ship list's; the cockpit has neither).
+if(fromLink&&typeof S!=='undefined'&&typeof window.render==='function'){S.view='kp'; window.render();}
 })();
 """

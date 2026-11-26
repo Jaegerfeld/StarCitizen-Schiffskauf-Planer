@@ -2,7 +2,15 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
-## [1.13.0] – 2026-11-30
+## [1.14.0] – 2026-11-26
+
+### Hinzugefügt
+- **Komponenten: Anschluss ans Cockpit.** Der Komponenten-Planer läuft jetzt auch im Bereich „Flotte“ des [SC Cockpits](https://jaegerfeld.github.io/sc-cockpit/). Dort gibt es unter der Einkaufsliste **„Einkaufsliste als Merker übernehmen“**: Je getauschtem Teil entsteht ein Merker mit Anzahl, günstigstem Händler und Preis. Danach folgen die offenen Merker der Einkaufsliste von selbst; abgehakte bleiben. Im Schiffskauf-Planer selbst ändert sich nichts, hier gibt es keine Merker.
+
+### Behoben
+- Changelog: Die Einträge 1.10.0 bis 1.13.0 trugen fortlaufende Daten bis zum 30.11.; alle vier sind am 26.11.2026 erschienen.
+
+## [1.13.0] – 2026-11-26
 
 ### Hinzugefügt
 - **Komponenten: sechs neue Schiffe**, je mit eigener Draufsicht und eigenem Bild nach eigenen Screenshots, Einbauorte vom Autor markiert. Damit hat der Reiter 19 Schiffe.
@@ -16,19 +24,19 @@ Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog]
 ### Behoben
 - Ein Steckplatz, der laut Spieldaten mehrere Teilearten aufnimmt, bekommt jetzt die Art des eingebauten Teils. Die Raketenracks der Pisces erschienen sonst als Waffe mit falscher Auswahl. Die bisherigen 13 Schiffe sind davon nicht betroffen (geprüft).
 
-## [1.12.0] – 2026-11-29
+## [1.12.0] – 2026-11-26
 
 ### Hinzugefügt
 - **Komponenten: Bild des Schiffs.** Oben links neben den Summen steht eine Seitenansicht des gezeigten Schiffs, zugeschnitten aus eigenen Screenshots (je etwa 20–25 KB, in die Seite eingebettet, also auch offline da). L-22 Alpha Wolf und Guardian QI zeigen das Bild ihres Schwestermodells mit gleichem Rumpf; die Bildunterschrift sagt das. Schmale Bildschirme stapeln Bild und Summen.
 
-## [1.11.0] – 2026-11-28
+## [1.11.0] – 2026-11-26
 
 ### Hinzugefügt
 - **Komponenten: Scraper-Module in den Bergungsköpfen** (MOTH, Vulture). Jeder Baler-Kopf hat zwei Modulplätze; jeder Platz ist eine eigene Unterkarte, denn meist stecken zwei verschiedene Module darin (z. B. Cinch und Abrade, an der Vulture links Cinch und ReadyGrip). Zur Wahl stehen die Scraper Abrade, Cinch, Comer, Hart, Trawler und das Traktormodul ReadyGrip, mit Preis und Händler.
   - Kennwerte in Prozent des Kopfs ohne Modul: Tempo (Abtragsgeschwindigkeit), Radius und Ausbeute.
   - Die Spieldaten führen die Modulplätze als nicht tauschbar; im Spiel lassen sie sich wechseln, deshalb bietet der Planer sie an.
 
-## [1.10.0] – 2026-11-27
+## [1.10.0] – 2026-11-26
 
 ### Hinzugefügt
 - **Komponenten: Schiffsliste mit Suche, Filter und Sortierung.** Der Dialog heißt jetzt **Schiffe …**; unter **Alle Schiffe** filterst du nach Hersteller und Einsatz (Kampf, Industrie, Erkundung …) und sortierst nach Hersteller, Name, Größe oder Einsatz. Jede Zeile nennt Rolle und Größe aus den Spieldaten.
