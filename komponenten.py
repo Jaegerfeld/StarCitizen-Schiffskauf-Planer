@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       29.11.2026
+# Geändert:       30.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -165,7 +165,10 @@ def slots(vehicle: dict, show_fixed: bool = False) -> list[dict]:
             fixed = fixed or (show_fixed and "WeaponGun" in t and not p.get("editable")
                               and bool((p.get("equipped_item") or {}).get("uuid")))
             if t and (p.get("editable") or fixed) and (p.get("sizes") or {}).get("max"):
-                typ = sorted(t, key=list(TYPES).index)[0]
+                # A port may accept several types (the Pisces' racks: MissileLauncher and WeaponGun);
+                # the fitted part decides, else the first type in TYPES order.
+                fit = (p.get("equipped_item") or {}).get("type")
+                typ = fit if fit in t else sorted(t, key=list(TYPES).index)[0]
                 port = parent or p["name"]
                 out.append({"id": f"{parent}/{p['name']}" if parent else p["name"], "port": port,
                             "type": typ, "size": p["sizes"]["max"], "side": side_of(port),

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/StarCitizen-Schiffskauf-Planer
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.11.2026
-# Geändert:       29.11.2026
+# Geändert:       30.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -244,6 +244,83 @@ def perseus() -> dict:
                 _path(side([(1440, 830), (1640, 830)]), ox, oy, False),                  # aft section
                 _path(side([(1425, 1100), (1540, 1100)]), ox, oy, False)]                # pod
     return {"viewBox": "90 0 680 1445", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
+
+
+def vanguard_warden() -> dict:
+    """Aegis Vanguard Warden, silhouette v1 (left half, mirrored at x = 1700), accepted on 26.11.2026."""
+    ox, oy, cx = 1100, 180, 1700
+    left = [(1700, 229), (1670, 267), (1650, 347), (1630, 367), (1625, 520), (1574, 520), (1566, 437),
+            (1530, 420), (1499, 433), (1490, 480), (1470, 587), (1417, 607), (1160, 773), (1160, 853),
+            (1397, 773), (1470, 767), (1483, 800), (1490, 1013), (1350, 1387), (1343, 1440), (1443, 1440),
+            (1500, 1250), (1550, 1287), (1590, 1213), (1657, 1093), (1680, 1000), (1700, 1000)]
+    det = [_path([(1675, 520), (1725, 520), (1725, 620), (1675, 620)], ox, oy),          # canopy
+           _path([(1677, 287), (1723, 287), (1723, 333), (1677, 333)], ox, oy)]          # gun box at the nose
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det.append(_path(side([(1530, 420), (1530, 700)]), ox, oy, False))              # engine pod
+    return {"viewBox": "40 30 1120 1250", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
+
+
+def pisces_c8x() -> dict:
+    """Anvil C8X Pisces Expedition, silhouette v1 (left half, mirrored at x = 1722), accepted on 26.11.2026."""
+    ox, oy, cx = 1300, 150, 1722
+    left = [(1722, 213), (1615, 213), (1580, 240), (1545, 320), (1500, 467), (1462, 580), (1450, 760),
+            (1360, 920), (1375, 1120), (1505, 1165), (1640, 1205), (1660, 1250), (1722, 1250)]
+    det = [_path([(1630, 215), (1814, 215), (1795, 365), (1649, 365)], ox, oy)]          # canopy
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det.append(_path(side([(1462, 580), (1560, 900)]), ox, oy, False))
+    return {"viewBox": "40 40 765 1080", "outline": _sym(left, cx, ox, oy), "details": det,
+            "circles": [[cx - ox, 780 - oy, 105]]}
+
+
+def pisces_c8r() -> dict:
+    """Anvil C8R Pisces Rescue, silhouette v1 (left half, mirrored at x = 1712), accepted on 26.11.2026."""
+    ox, oy, cx = 1250, 150, 1712
+    left = [(1712, 207), (1627, 207), (1590, 250), (1557, 333), (1500, 453), (1480, 600), (1470, 747),
+            (1450, 813), (1293, 955), (1300, 975), (1490, 1150), (1540, 1172), (1640, 1195), (1712, 1205)]
+    det = [_path([(1630, 215), (1794, 215), (1780, 360), (1644, 360)], ox, oy)]          # canopy
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det.append(_path(side([(1470, 747), (1560, 1000)]), ox, oy, False))
+    return {"viewBox": "25 40 875 1035", "outline": _sym(left, cx, ox, oy), "details": det,
+            "circles": [[cx - ox, 800 - oy, 95]]}
+
+
+def arrow() -> dict:
+    """Anvil Arrow, silhouette v1 (left half, mirrored at x = 1722), accepted on 26.11.2026."""
+    ox, oy, cx = 1380, 380, 1722
+    left = [(1722, 427), (1700, 487), (1687, 573), (1620, 627), (1433, 1027), (1427, 1055), (1487, 1050),
+            (1560, 1003), (1487, 1200), (1500, 1205), (1590, 1130), (1650, 1005), (1722, 1020)]
+    det = [_path([(1705, 600), (1739, 600), (1739, 720), (1705, 720)], ox, oy)]          # canopy
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det.append(_path(side([(1620, 627), (1640, 1000)]), ox, oy, False))
+    return {"viewBox": "30 30 625 815", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
+
+
+def cutlass_red() -> dict:
+    """Drake Cutlass Red, silhouette v1 (left half, mirrored at x = 1722), accepted on 26.11.2026."""
+    ox, oy, cx = 1250, 220, 1722
+    left = [(1722, 265), (1690, 270), (1675, 330), (1664, 364), (1480, 379), (1429, 331), (1415, 335),
+            (1420, 629), (1464, 600), (1464, 543), (1600, 543), (1586, 643), (1557, 700), (1557, 880),
+            (1464, 905), (1330, 880), (1307, 1000), (1314, 1290), (1379, 1305), (1440, 1120), (1557, 1150),
+            (1557, 1257), (1664, 1343), (1722, 1357)]
+    det = [_path([(1690, 300), (1754, 300), (1754, 430), (1690, 430)], ox, oy)]          # cockpit
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det.append(_path(side([(1440, 1120), (1440, 900)]), ox, oy, False))             # pod seam
+    return {"viewBox": "40 30 865 1125", "outline": _sym(left, cx, ox, oy), "details": det,
+            "circles": [[cx - ox, 615 - oy, 45]]}
+
+
+def reclaimer() -> dict:
+    """Aegis Reclaimer, silhouette v1 (left half, mirrored at x = 1712), accepted on 26.11.2026."""
+    ox, oy, cx = 1300, 180, 1712
+    left = [(1712, 243), (1686, 250), (1664, 290), (1650, 420), (1630, 440), (1590, 465), (1490, 480),
+            (1460, 490), (1371, 493), (1371, 629), (1420, 640), (1450, 665), (1590, 665), (1586, 700),
+            (1430, 705), (1420, 780), (1445, 821), (1586, 821), (1600, 857), (1600, 1371), (1640, 1385),
+            (1712, 1390)]
+    det = [_path([(1640, 880), (1784, 880), (1784, 1360), (1640, 1360)], ox, oy)]        # salvage deck
+    for side in (lambda p: p, lambda p: _mirror(p, cx)):
+        det += [_path(side([(1590, 465), (1590, 665)]), ox, oy, False),                 # arm roots
+                _path(side([(1586, 700), (1586, 821)]), ox, oy, False)]
+    return {"viewBox": "50 40 725 1190", "outline": _sym(left, cx, ox, oy), "details": det, "circles": []}
 
 
 #: Ships of the tab, in display order. Keys are slugs of the Star Citizen Wiki API.
@@ -525,6 +602,134 @@ SHIPS: dict[str, dict] = {
             "hardpoint_cooler_1": {"xy": [250, 950], "col": "L"},
             "hardpoint_cooler_2": {"xy": [600, 950], "col": "R"},
             "hardpoint_quantum_drive": {"xy": [425, 1200]},
+        },
+    },
+    "vanguard-warden": {
+        "short": "Aegis Vanguard Warden", "sil": vanguard_warden,
+        "anch": {},
+        # Marked by the author 26.11.2026: 1 nose gun S5; 2-5 the four S2 guns in the box at the nose, packed
+        # like the four on a die (data without positions: fixed_001-004 in the author's order); 6 turret;
+        # 7-10 built-in racks under the wings.
+        "panch": {
+            "hardpoint_weapon_gun_nose": {"xy": [600, 65], "pos": "nase", "low": True},
+            "hardpoint_weapon_gun_nose_fixed_001": {"xy": [588, 118], "pos": "nase", "low": True},
+            "hardpoint_weapon_gun_nose_fixed_002": {"xy": [588, 142], "pos": "nase", "low": True},
+            "hardpoint_weapon_gun_nose_fixed_003": {"xy": [612, 118], "pos": "nase", "low": True},
+            "hardpoint_weapon_gun_nose_fixed_004": {"xy": [612, 142], "pos": "nase", "low": True},
+            "turret_left": {"xy": [600, 400], "pos": "oben"},
+            "turret_right": {"xy": [600, 400], "pos": "oben"},
+            "hardpoint_weapon_missilerack_left_inner": {"xy": [420, 573], "pos": "unten", "low": True},
+            "hardpoint_weapon_missilerack_right_inner": {"xy": [780, 573], "pos": "unten", "low": True},
+            "hardpoint_weapon_missilerack_left_rear": {"xy": [347, 573], "pos": "unten", "low": True},
+            "hardpoint_weapon_missilerack_right_rear": {"xy": [853, 573], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [600, 330]},
+            "hardpoint_shield_generator_001": {"xy": [560, 650], "col": "L"},
+            "hardpoint_shield_generator_002": {"xy": [640, 650], "col": "R"},
+            "hardpoint_cooler_left": {"xy": [440, 700], "col": "L"},
+            "hardpoint_cooler_right": {"xy": [760, 700], "col": "R"},
+            "hardpoint_powerplant_middle": {"xy": [600, 730]},
+            "hardpoint_quantum_drive": {"xy": [600, 790]},
+        },
+    },
+    "c8x-pisces-expedition": {
+        "short": "Anvil C8X Pisces Expedition", "sil": pisces_c8x,
+        "anch": {},
+        # Marked by the author 26.11.2026: 1/2 nose guns, 3/4 wing guns, 5/6 racks underneath.
+        "panch": {
+            "hardpoint_weapon_gun_left": {"xy": [352, 70], "pos": "nase"},
+            "hardpoint_weapon_gun_right": {"xy": [492, 70], "pos": "nase"},
+            "hardpoint_weapon_gun_wing_left": {"xy": [125, 710]},
+            "hardpoint_weapon_gun_wing_right": {"xy": [719, 710]},
+            "hardpoint_weapon_missile_left": {"xy": [230, 640], "pos": "unten", "low": True},
+            "hardpoint_weapon_missile_right": {"xy": [614, 640], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [422, 280]},
+            "hardpoint_shield_generator": {"xy": [422, 470]},
+            "hardpoint_quantum_drive": {"xy": [422, 860]},
+            "hardpoint_power_plant": {"xy": [422, 960]},
+            "hardpoint_cooler": {"xy": [422, 1040]},
+        },
+    },
+    "c8r-pisces-rescue": {
+        "short": "Anvil C8R Pisces Rescue", "sil": pisces_c8r,
+        "anch": {},
+        # Marked by the author 26.11.2026: 1/2 nose guns, 3/4 racks on the side pods (no wing guns).
+        "panch": {
+            "hardpoint_weapon_gun_left": {"xy": [395, 65], "pos": "nase"},
+            "hardpoint_weapon_gun_right": {"xy": [529, 65], "pos": "nase"},
+            "hardpoint_weapon_missile_left": {"xy": [220, 720]},
+            "hardpoint_weapon_missile_right": {"xy": [704, 720]},
+            "hardpoint_radar": {"xy": [462, 260]},
+            "hardpoint_shield_generator": {"xy": [462, 480]},
+            "hardpoint_quantum_drive": {"xy": [462, 880]},
+            "hardpoint_power_plant": {"xy": [462, 960]},
+            "hardpoint_cooler": {"xy": [462, 1020]},
+        },
+    },
+    "arrow": {
+        "short": "Anvil Arrow", "sil": arrow,
+        "anch": {},
+        # Marked by the author 26.11.2026: 1/2 wing guns and 4-7 racks under the wings, 3 chin turret.
+        "panch": {
+            "hardpoint_weapon_wing_left": {"xy": [200, 410], "pos": "unten", "low": True},
+            "hardpoint_weapon_wing_right": {"xy": [484, 410], "pos": "unten", "low": True},
+            "hardpoint_gimbal_mount": {"xy": [342, 75], "pos": "nase", "low": True},
+            "hardpoint_missile_wing_left_outer": {"xy": [101, 590], "pos": "unten", "low": True},
+            "hardpoint_missile_wing_left_inner": {"xy": [162, 500], "pos": "unten", "low": True},
+            "hardpoint_missile_wing_right_outer": {"xy": [583, 590], "pos": "unten", "low": True},
+            "hardpoint_missile_wing_right_inner": {"xy": [522, 500], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [342, 180]},
+            "hardpoint_shield_generator_left": {"xy": [310, 420], "col": "L"},
+            "hardpoint_power_plant": {"xy": [342, 520]},
+            "hardpoint_cooler_left": {"xy": [310, 600], "col": "L"},
+            "hardpoint_cooler_right": {"xy": [374, 600], "col": "R"},
+            "hardpoint_quantum_drive": {"xy": [342, 660]},
+        },
+    },
+    "cutlass-red": {
+        "short": "Drake Cutlass Red", "sil": cutlass_red,
+        "anch": {},
+        # Marked by the author 26.11.2026: 1/2 guns under the nose, 3/4 guns under the wings; no racks,
+        # the top turret is a scanner without a weapon.
+        "panch": {
+            "hardpoint_Left_Body_Weapon": {"xy": [445, 70], "pos": "nase", "low": True},
+            "hardpoint_Right_Body_Weapon": {"xy": [499, 70], "pos": "nase", "low": True},
+            "hardpoint_Left_Wing_Weapon": {"xy": [310, 210], "pos": "unten", "low": True},
+            "hardpoint_Right_Wing_Weapon": {"xy": [634, 210], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [472, 130]},
+            "hardpoint_shield_generator_right": {"xy": [520, 560], "col": "R"},
+            "hardpoint_cooler_left": {"xy": [400, 700], "col": "L"},
+            "hardpoint_cooler_right": {"xy": [544, 700], "col": "R"},
+            "hardpoint_power_plant": {"xy": [472, 800]},
+            "hardpoint_quantum_drive": {"xy": [472, 950]},
+        },
+    },
+    "reclaimer": {
+        "short": "Aegis Reclaimer", "sil": reclaimer, "show_fixed": True,
+        "anch": {},
+        # Marked by the author 26.11.2026 (top view is the reference): 1 manned turret, 2/3 front, 4 top,
+        # 5 bottom, 6/7 rear remote turrets, 8/9 salvage heads; point defence 11-13 top, 14-17 bottom in the
+        # author's numbering (data without positions, all the same built-in M2C "Swarm").
+        "panch": {
+            "hardpoint_turret": {"xy": [412, 241], "pos": "oben"},
+            "hardpoint_remote_turret_front_left": {"xy": [378, 120], "pos": "unten", "low": True},
+            "hardpoint_remote_turret_front_right": {"xy": [446, 120], "pos": "unten", "low": True},
+            "hardpoint_remote_turret_top": {"xy": [412, 734], "pos": "oben"},
+            "hardpoint_remote_turret_bottom": {"xy": [412, 584], "pos": "unten", "low": True},
+            "hardpoint_remote_turret_rear_left": {"xy": [324, 1027], "pos": "unten", "low": True},
+            "hardpoint_remote_turret_rear_right": {"xy": [500, 1027], "pos": "unten", "low": True},
+            "hardpoint_remote_turret_salvage_left": {"xy": [390, 163], "pos": "unten", "low": True},
+            "hardpoint_remote_turret_salvage_right": {"xy": [434, 163], "pos": "unten", "low": True},
+            "hardpoint_pdc_top_01": {"xy": [412, 1156], "pos": "oben"},
+            "hardpoint_pdc_top_02": {"xy": [337, 394], "pos": "oben"},
+            "hardpoint_pdc_top_03": {"xy": [487, 394], "pos": "oben"},
+            "hardpoint_pdc_bottom_01": {"xy": [362, 205], "pos": "unten", "low": True},
+            "hardpoint_pdc_bottom_02": {"xy": [462, 205], "pos": "unten", "low": True},
+            "hardpoint_pdc_bottom_03": {"xy": [325, 813], "pos": "unten", "low": True},
+            "hardpoint_pdc_bottom_04": {"xy": [499, 813], "pos": "unten", "low": True},
+            "hardpoint_radar": {"xy": [412, 330]},
+            "hardpoint_shield_generator_01": {"xy": [412, 470]},
+            "hardpoint_cooler_01": {"xy": [412, 660]},
+            "hardpoint_quantum_drive": {"xy": [412, 900]},
         },
     },
 }

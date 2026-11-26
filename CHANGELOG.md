@@ -2,6 +2,20 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.13.0] – 2026-11-30
+
+### Hinzugefügt
+- **Komponenten: sechs neue Schiffe**, je mit eigener Draufsicht und eigenem Bild nach eigenen Screenshots, Einbauorte vom Autor markiert. Damit hat der Reiter 19 Schiffe.
+  - **Aegis Vanguard Warden:** Hauptkanone S5 und vier S2 als dichter Viererblock an der Nase, bemannter Turm (2 × S3), vier fest verbaute Racks unter den Flügeln.
+  - **Anvil C8X Pisces Expedition:** zwei Kanonen an der Nase, zwei Flügelwaffen, zwei Racks unten.
+  - **Anvil C8R Pisces Rescue:** zwei Kanonen an der Nase, zwei Racks an den Seiten.
+  - **Anvil Arrow:** zwei Flügelwaffen S3, Kinnturm mit zwei S1, vier Racks unter den Flügeln.
+  - **Drake Cutlass Red:** vier Waffen S3 unter Nase und Flügeln (laut Spieldaten keine Racks; der Turm ist ein Scanner).
+  - **Aegis Reclaimer:** bemannter Turm (2 × S5), sechs Ferntürme (je 2 × S3), zwei Bergungsköpfe mit Modulen, sieben fest verbaute Punktverteidigungen.
+
+### Behoben
+- Ein Steckplatz, der laut Spieldaten mehrere Teilearten aufnimmt, bekommt jetzt die Art des eingebauten Teils. Die Raketenracks der Pisces erschienen sonst als Waffe mit falscher Auswahl. Die bisherigen 13 Schiffe sind davon nicht betroffen (geprüft).
+
 ## [1.12.0] – 2026-11-29
 
 ### Hinzugefügt
