@@ -21,7 +21,7 @@ The whole app is **one self-contained HTML file**: no install, no server. The in
 - **Wishlist:** choose the buying location per ship and see buying stops, total and remaining budget.
 - **Components (preview):** swap a ship's shields, power plants, coolers, quantum drive, radar, weapons,
   turrets, missiles, mining lasers with modules, salvage heads with scraper modules and tractor beams, only parts that fit, with totals and a shopping list (cheapest shop, all shops to
-  expand). First 13 ships by Anvil, Argo, Drake, Kruger, Mirai, MISC and RSI (named "Manufacturer Ship name"); ship list with search, filters and sorting, view for a try without a fleet; own fleet (the same model more than once), loadout per ship stored in the browser and shareable as a link; weapons with damage/s, alpha and range.
+  expand). First 19 ships by Aegis, Anvil, Argo, Drake, Kruger, Mirai, MISC and RSI (named "Manufacturer Ship name"); ship list with search, filters and sorting, view for a try without a fleet; own fleet (the same model more than once), loadout per ship stored in the browser and shareable as a link; weapons with damage/s, alpha and range.
 - **Daily data:** the online version is rebuilt every day. The in-app button loads that build's
   `data.json`, also from an offline copy.
 
