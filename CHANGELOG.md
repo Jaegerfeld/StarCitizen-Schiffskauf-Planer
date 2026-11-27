@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.16.0] – 2026-11-27
+
+### Hinzugefügt
+- **Einkaufsliste: „Habe ich schon“.** Jedes getauschte Teil landet weiter automatisch auf der Einkaufsliste. Neu ist der Knopf **Habe ich schon** in jeder Zeile: Er nimmt das Teil von der Liste, etwa weil es schon im Schiff steckt oder bei dir im Lager liegt. Das Teil bleibt eingebaut; nur Summe, Zahl der Orte und die Merker im Cockpit rechnen ohne es.
+  - Herausgenommene Teile stehen unter der Liste bei **Schon vorhanden**. **Doch kaufen** setzt ein Teil zurück auf die Liste.
+  - Die Markierung gilt für genau dieses Teil in diesem Steckplatz dieses Schiffs. Belegst du den Steckplatz neu, steht das neue Teil wieder auf der Liste.
+  - Bei Gruppen wie „2 × Waffe“ gilt die Markierung für die ganze Gruppe.
+
 ## [1.15.0] – 2026-11-27
 
 ### Hinzugefügt

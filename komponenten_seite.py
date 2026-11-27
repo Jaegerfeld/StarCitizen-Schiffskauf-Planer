@@ -223,6 +223,13 @@ KP_CSS = r"""
   #kpPanel .kp-mode .btn[aria-pressed="true"]::before{content:"✓ "}
   #kpPanel .kp-shop tr.kp-grp td{background:var(--panel2);font-weight:700}
   #kpPanel .kp-shopsum{margin:8px 0 0;font-size:14px}
+  #kpPanel .kp-shop td.kp-own{text-align:right;white-space:nowrap}
+  #kpPanel .kp-shop td.kp-own .btn,#kpPanel .kp-owned .btn{min-height:36px;padding:4px 10px;font-size:13px}
+  #kpPanel .kp-owned{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  #kpPanel .kp-owned h4{margin:0 0 6px;font-size:14.5px}
+  #kpPanel .kp-owned ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  #kpPanel .kp-owned li{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;color:var(--muted)}
+  #kpPanel .kp-owned li b{color:var(--ink)}
   #kpPanel .kp-forced{color:var(--muted);padding:10px 6px 4px;margin:0}
   #kpPanel .kp-merk{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
   #kpPanel .kp-merk p{margin:0} #kpPanel .kp-merk .btn{min-height:44px}
@@ -315,7 +322,8 @@ const byUex={}; for(const x of KP.ships) if(x.uex!=null) byUex[x.uex]=x;
 // probe: {slug, fit} of a ship looked at without being in the fleet (one at a time).
 // merk: {shipId:true} for ships whose shopping list is kept as reminders (cockpit only).
 // shop: 'price' (cheapest offer per part) or 'place' (as few places as possible) for the shopping list.
-const DB=(()=>{const d=load(KEY)||{}, db={v:3,fit:d.fit||{},last:d.last||null,probe:d.probe||null,merk:d.merk||{},shop:d.shop==='place'?'place':'price'};
+// have: {shipId:{slotId:uuid}} – swapped parts the player already owns; they stay fitted but leave the shopping list.
+const DB=(()=>{const d=load(KEY)||{}, db={v:3,fit:d.fit||{},last:d.last||null,probe:d.probe||null,merk:d.merk||{},shop:d.shop==='place'?'place':'price',have:d.have||{}};
   // Earlier stands of this tab kept their own ship list (v1: one tick per model, v2: fleet); move it into the shared fleet once.
   const old=Array.isArray(d.fleet)?d.fleet:(d.mine||[]).map(s=>({id:s,slug:s,name:''}));
   const add=old.map(f=>({f,m:model(f.slug)})).filter(x=>x.m&&x.m.uex!=null).map(({f,m})=>({id:f.id,uex:m.uex,model:m.model,name:f.name||''}));
@@ -451,20 +459,29 @@ function shopPlan(ch,mode){const pick=new Map(), xs=ch.map(s=>({id:s.id,n:s.n||1
   let sum=0,missing=0; const places=new Set();
   for(const x of xs){const o=pick.get(x.id); if(o){sum+=o.price*x.n; places.add(placeKey(o));} else missing++;}
   return {pick,sum,places:places.size,missing};}
+// A swapped part the player already has (marked for exactly this part in this slot of this ship).
+const owned=s=>{const h=DB.have[inst]; return !!(h&&h[s.id]&&h[s.id]===state[s.id]);};
+// What is left to buy: swapped parts without the ones already owned.
+const toBuy=()=>swapped().filter(s=>!owned(s));
+function ownedHtml(own){if(!own.length) return '';
+  return `<div class="kp-owned"><h4>${T('Schon vorhanden – nicht auf der Einkaufsliste','Already owned – not on the shopping list')} (${own.length})</h4><ul>${own.map(s=>{const it=item(state[s.id]), n=s.n||1;
+    return `<li><span>${n>1?n+' × ':''}<b>${esc(it?.name||'?')}</b> · ${T(...KP.types[s.type])} S${s.size} (${sideTxt(s)})</span><button type="button" class="btn" data-unown="${esc(s.id)}" aria-label="${esc(T('Doch kaufen','Buy after all')+': '+(it?.name||''))}">${T('Doch kaufen','Buy after all')}</button></li>`;}).join('')}</ul></div>`;}
 function renderShop(){
-  const ch=swapped(), out=$k('shoplist'), mode=DB.shop;
+  const all=swapped(), ch=all.filter(s=>!owned(s)), own=all.filter(owned), out=$k('shoplist'), mode=DB.shop;
   for(const b of $k('mode').querySelectorAll('button')) b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
   $k('mode').hidden=!ch.length;
-  if(!ch.length){out.innerHTML=`<p class="note" style="margin:4px 0">${T('Noch nichts geändert. Klick auf eine Komponente, um sie zu tauschen.','Nothing changed yet. Click a component to swap it.')}</p>`;return;}
+  if(!all.length){out.innerHTML=`<p class="note" style="margin:4px 0">${T('Noch nichts geändert. Klick auf eine Komponente, um sie zu tauschen.','Nothing changed yet. Click a component to swap it.')}</p>`;return;}
+  if(!ch.length){out.innerHTML=`<p class="note" style="margin:4px 0" role="status">${T('Nichts zu kaufen: Alle getauschten Teile hast du schon.','Nothing to buy: you already have all swapped parts.')}</p>`+ownedHtml(own);return;}
   const P=shopPlan(ch,mode), other=shopPlan(ch,mode==='place'?'price':'place');
   const row=s=>{const it=item(state[s.id]), n=s.n||1, o=P.pick.get(s.id);
     return `<tr><td>${n>1?n+' × ':''}${T(...KP.types[s.type])} S${s.size}${s.sub?` <span class="note">${T('in','in')} ${esc(item(cur(s.parent))?.name||'')}</span>`:''} <span class="note">(${sideTxt(s)})</span></td><td><b>${esc(it.name)}</b></td><td>${shopCell(it,o)}</td>
-      <td class="p">${o?fmt(o.price*n)+' aUEC':'–'}${o&&n>1?`<br><span class="note">${n} × ${fmt(o.price)}</span>`:''}</td></tr>`};
+      <td class="p">${o?fmt(o.price*n)+' aUEC':'–'}${o&&n>1?`<br><span class="note">${n} × ${fmt(o.price)}</span>`:''}</td>
+      <td class="kp-own"><button type="button" class="btn" data-own="${esc(s.id)}" aria-label="${esc(T('Habe ich schon','I have it')+': '+it.name)}" title="${esc(T('Von der Einkaufsliste nehmen; das Teil bleibt eingebaut','Take off the shopping list; the part stays fitted'))}">${T('Habe ich schon','I have it')}</button></td></tr>`};
   let rows;
   if(mode==='place'){const grp=new Map(); for(const s of ch){const o=P.pick.get(s.id), k=o?placeKey(o):''; if(!grp.has(k)) grp.set(k,{o,list:[]}); grp.get(k).list.push(s);}
     const order=[...grp.entries()].sort((a,b)=>(a[0]==='')-(b[0]==='')||b[1].list.length-a[1].list.length||a[0].localeCompare(b[0]));
     rows=order.map(([k,g])=>{const sub=g.list.reduce((a,s)=>a+(g.o?P.pick.get(s.id).price*(s.n||1):0),0);
-      return `<tr class="kp-grp"><td colspan="3">${g.o?`${esc(g.o.place||g.o.shop)}${g.o.sys?` <span class="kp-sys">${esc(g.o.sys)}</span>`:''} <span class="note">· ${g.list.length} ${T(g.list.length===1?'Teil':'Teile',g.list.length===1?'part':'parts')}</span>`:T('Nicht kaufbar','Not buyable')}</td><td class="p">${g.o?fmt(sub)+' aUEC':'–'}</td></tr>`+g.list.map(row).join('');}).join('');}
+      return `<tr class="kp-grp"><td colspan="3">${g.o?`${esc(g.o.place||g.o.shop)}${g.o.sys?` <span class="kp-sys">${esc(g.o.sys)}</span>`:''} <span class="note">· ${g.list.length} ${T(g.list.length===1?'Teil':'Teile',g.list.length===1?'part':'parts')}</span>`:T('Nicht kaufbar','Not buyable')}</td><td class="p">${g.o?fmt(sub)+' aUEC':'–'}</td><td></td></tr>`+g.list.map(row).join('');}).join('');}
   else rows=ch.map(row).join('');
   const pl=n=>`${n} ${T(n===1?'Ort':'Orte',n===1?'place':'places')}`, d=P.sum-other.sum;
   const cmp=mode==='place'
@@ -472,14 +489,14 @@ function renderShop(){
       :T('Der günstigste Preis braucht hier nicht mehr Orte.','The lowest price needs no more places here.'))
     :(other.places<P.places?T(`„Wenige Orte“ käme mit ${other.places} ${other.places===1?'Ort':'Orten'} aus, für ${fmt(Math.max(0,-d))} aUEC mehr.`,`“Fewest places” would need ${pl(other.places)}, for ${fmt(Math.max(0,-d))} aUEC more.`)
       :T('„Wenige Orte“ findet hier keine kürzere Tour.','“Fewest places” finds no shorter tour here.'));
-  out.innerHTML=`<div class="tablewrap"><table><thead><tr><th>${T('Steckplatz','Slot')}</th><th>${T('Neu','New')}</th><th>${mode==='place'?T('Händler am Ort','Shop at the place'):T('Händler (günstigster)','Shop (cheapest)')}</th><th class="num">${T('Preis','Price')}</th></tr></thead><tbody>${rows}
-   <tr class="tot"><td colspan="3">${T('Summe','Total')} · ${pl(P.places)}${P.missing?` (${P.missing} ${T('ohne Kaufpreis','without price')})`:''}</td><td class="p">${fmt(P.sum)} aUEC</td></tr></tbody></table></div>
-   <p class="note kp-shopsum" role="status">${cmp}</p>`;
+  out.innerHTML=`<div class="tablewrap"><table><thead><tr><th>${T('Steckplatz','Slot')}</th><th>${T('Neu','New')}</th><th>${mode==='place'?T('Händler am Ort','Shop at the place'):T('Händler (günstigster)','Shop (cheapest)')}</th><th class="num">${T('Preis','Price')}</th><th aria-label="${T('Von der Liste nehmen','Take off the list')}"></th></tr></thead><tbody>${rows}
+   <tr class="tot"><td colspan="3">${T('Summe','Total')} · ${pl(P.places)}${P.missing?` (${P.missing} ${T('ohne Kaufpreis','without price')})`:''}</td><td class="p">${fmt(P.sum)} aUEC</td><td></td></tr></tbody></table></div>
+   <p class="note kp-shopsum" role="status">${cmp}</p>`+ownedHtml(own);
 }
 
 /* ---------- reminders (only inside the cockpit, where window.SCData exists) ---------- */
 // The shopping list as reminder entries: one per part, counts added up, with the cheapest shop.
-function merkList(){const by={}, ch=swapped(), P=shopPlan(ch,DB.shop);
+function merkList(){const by={}, ch=toBuy(), P=shopPlan(ch,DB.shop);
   for(const s of ch){const u=state[s.id], it=item(u); if(!it) continue; const o=P.pick.get(s.id);
     const e=by[u]||(by[u]={key:u,text:it.name,n:0,...(o?{price:o.price,shop:o.shop+(o.sys?` (${o.sys})`:'')}:{})}); e.n+=s.n||1;}
   return Object.values(by);}
@@ -565,6 +582,13 @@ $k('onlybuy').addEventListener('change',fillList);
 $k('dreset').addEventListener('click',()=>{delete state[open.id]; if(!open.sub) dropSubs(open.id); changed();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open) closeDrawer();});
 $k('resetall').addEventListener('click',()=>{for(const k in state) delete state[k]; changed();});
+// "I have it" takes a part off the shopping list, "Buy after all" puts it back; the part stays fitted either way.
+$k('shoplist').addEventListener('click',e=>{const a=e.target.closest('button[data-own]'), b=e.target.closest('button[data-unown]'); if(!a&&!b||!inst) return;
+  const h=DB.have[inst]||(DB.have[inst]={});
+  if(a){const id=a.dataset.own; if(!state[id]) return; h[id]=state[id];} else delete h[b.dataset.unown];
+  if(!Object.keys(h).length) delete DB.have[inst];
+  persist(); renderShop(); syncMerk();
+  ($k('shoplist').querySelector(a?'button[data-own]':'button[data-unown]')||$k('shoplist').querySelector('button'))?.focus({preventScroll:true});});
 $k('mode').addEventListener('click',e=>{const b=e.target.closest('button[data-mode]'); if(!b||DB.shop===b.dataset.mode) return;
   DB.shop=b.dataset.mode; persist(); renderShop(); syncMerk();});
 $k('merk').addEventListener('click',e=>{if(!window.SCData||!inst||inst===LINK) return;
@@ -586,7 +610,7 @@ function show(id){if(open) closeDrawer(); inst=id;
   persist(); setup(); drawShip(); render();}
 // Open a model in preview; looking at the model already in preview keeps its loadout.
 function preview(slug){if(linkSlug!==slug) STATE[LINK]={}; linkSlug=slug; DB.probe={slug,fit:{...STATE[LINK]}}; show(LINK);}
-function dropProbe(){linkSlug=null; delete STATE[LINK]; DB.probe=null; if(DB.last===LINK) DB.last=null; persist();}
+function dropProbe(){linkSlug=null; delete STATE[LINK]; delete DB.have[LINK]; DB.probe=null; if(DB.last===LINK) DB.last=null; persist();}
 // Buttons of my fleet; the ship in preview is shown dashed and marked, with "add" and "discard" next to it.
 function renderShips(){
   const btn=(id,lab,cls)=>`<button type="button"${cls?` class="${cls}"`:''} data-id="${esc(id)}" aria-pressed="${id===inst}"${cls?` title="${esc(T('Vorschau – nicht in deiner Flotte','Preview – not in your fleet'))}"`:''}>${esc(lab)}${cls?`<span class="kp-pv">${T('Vorschau','preview')}</span>`:''}</button>`;
