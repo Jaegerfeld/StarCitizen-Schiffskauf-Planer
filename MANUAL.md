@@ -69,7 +69,7 @@ Goal: you fit a different shield to the Hornet Mk II and find out where to buy i
 6. Click a part to fit it. The card then shows **changed**.
 7. Close the selection with **Close**, the × at the top right, Esc, a second click on the same card or a click next to it.
 8. Check the totals above the top view: **Total shield HP**, **Weapon damage/s**, **Total alpha damage**, **Total missile damage**, **Cooling** and the power balance (output / draw). Arrows show the difference to the stock loadout. **⚠ too little** means the power plant delivers less than the parts need.
-9. Scroll to the **Shopping list**. Above it choose **Lowest price** or **Fewest places**: the first names the cheapest shop for each swapped part, the second puts the parts on as few places as possible and groups the list by place. Below the list you see what the other choice would mean in places and aUEC. **all … shops** expands all shops with price and date of the price report.
+9. Scroll to the **Shopping list**. Above it choose **Lowest price** or **Fewest places**: the first names the cheapest shop for each swapped part, the second puts the parts on as few places as possible and groups the list by place. Below the list you see what the other choice would mean in places and aUEC. **I have it** takes a part off the list when you do not need to buy it; it stays fitted and then sits under **Already owned**, from where **Buy after all** brings it back. **all … shops** expands all shops with price and date of the price report.
 10. The browser remembers your loadout by itself. To share it or use another device, click **Copy link to this loadout**.
 
 ### Tips
