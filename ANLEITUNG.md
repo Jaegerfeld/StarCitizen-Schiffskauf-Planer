@@ -69,7 +69,7 @@ Ziel: Du baust bei der Hornet Mk II einen anderen Schild ein und findest heraus,
 6. Klick auf ein Teil, um es einzubauen. Die Karte zeigt danach **geändert**.
 7. Schließ die Auswahl mit **Schließen**, mit dem × oben rechts, mit Esc, mit einem zweiten Klick auf dieselbe Karte oder mit einem Klick daneben.
 8. Prüf die Summen über der Draufsicht: **Schild-HP gesamt**, **Waffenschaden/s**, **Alpha-Schaden gesamt**, **Raketenschaden gesamt**, **Kühlung** und die Energiebilanz (erzeugt / Bedarf). Pfeile zeigen den Unterschied zum Werkszustand. **⚠ zu wenig** heißt, das Kraftwerk liefert weniger, als die Teile brauchen.
-9. Scroll zur **Einkaufsliste**. Sie nennt für jedes getauschte Teil den günstigsten Händler mit Sternsystem und den Preis. Mit **alle … Händler** klappst du alle Händler mit Preis und Datum der Preismeldung auf.
+9. Scroll zur **Einkaufsliste**. Wähl darüber **Günstigster Preis** oder **Wenige Orte**: Die erste Wahl nennt für jedes getauschte Teil den billigsten Händler, die zweite legt die Teile auf möglichst wenige Standorte und gruppiert die Liste nach Ort. Unter der Liste steht, was die andere Wahl an Orten und aUEC ausmachen würde. Mit **alle … Händler** klappst du alle Händler mit Preis und Datum der Preismeldung auf.
 10. Deine Bestückung merkt sich der Browser von selbst. Zum Teilen oder für ein anderes Gerät klick auf **Link zu dieser Bestückung kopieren**. Wer den Link öffnet, sieht das Schiff als Vorschau und kann es in seine Flotte übernehmen.
 
 ### Tipps

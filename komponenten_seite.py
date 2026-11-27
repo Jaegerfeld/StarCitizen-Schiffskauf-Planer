@@ -79,6 +79,11 @@ KP_HTML = r"""
     </div>
     <section class="kp-shop" aria-live="polite">
       <h3><span class="de">Einkaufsliste</span><span class="en">Shopping list</span></h3>
+      <div class="kp-mode" id="kp-mode" role="group" aria-labelledby="kp-modelab">
+        <span id="kp-modelab"><span class="de">Einkaufen nach:</span><span class="en">Shop by:</span></span>
+        <button type="button" class="btn" data-mode="price"><span class="de">Günstigster Preis</span><span class="en">Lowest price</span></button>
+        <button type="button" class="btn" data-mode="place"><span class="de">Wenige Orte</span><span class="en">Fewest places</span></button>
+      </div>
       <div id="kp-shoplist"></div>
       <div class="kp-acts">
         <button type="button" class="btn" id="kp-copylink"><span class="de">Link zu dieser Bestückung kopieren</span><span class="en">Copy link to this loadout</span></button>
@@ -212,6 +217,13 @@ KP_CSS = r"""
   #kpPanel .kp-shop .note{color:var(--muted);font-size:12px}
   #kpPanel .kp-acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   #kpPanel .kp-acts .btn{min-height:44px}
+  #kpPanel .kp-mode{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;font-size:14px;color:var(--muted)}
+  #kpPanel .kp-mode .btn{min-height:36px}
+  #kpPanel .kp-mode .btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:700}
+  #kpPanel .kp-mode .btn[aria-pressed="true"]::before{content:"✓ "}
+  #kpPanel .kp-shop tr.kp-grp td{background:var(--panel2);font-weight:700}
+  #kpPanel .kp-shopsum{margin:8px 0 0;font-size:14px}
+  #kpPanel .kp-forced{color:var(--muted);padding:10px 6px 4px;margin:0}
   #kpPanel .kp-merk{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
   #kpPanel .kp-merk p{margin:0} #kpPanel .kp-merk .btn{min-height:44px}
   #kpPanel .kp-sys{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:4px;white-space:nowrap}
@@ -302,7 +314,8 @@ const model=slug=>KP.ships.find(x=>x.slug===slug);
 const byUex={}; for(const x of KP.ships) if(x.uex!=null) byUex[x.uex]=x;
 // probe: {slug, fit} of a ship looked at without being in the fleet (one at a time).
 // merk: {shipId:true} for ships whose shopping list is kept as reminders (cockpit only).
-const DB=(()=>{const d=load(KEY)||{}, db={v:3,fit:d.fit||{},last:d.last||null,probe:d.probe||null,merk:d.merk||{}};
+// shop: 'price' (cheapest offer per part) or 'place' (as few places as possible) for the shopping list.
+const DB=(()=>{const d=load(KEY)||{}, db={v:3,fit:d.fit||{},last:d.last||null,probe:d.probe||null,merk:d.merk||{},shop:d.shop==='place'?'place':'price'};
   // Earlier stands of this tab kept their own ship list (v1: one tick per model, v2: fleet); move it into the shared fleet once.
   const old=Array.isArray(d.fleet)?d.fleet:(d.mine||[]).map(s=>({id:s,slug:s,name:''}));
   const add=old.map(f=>({f,m:model(f.slug)})).filter(x=>x.m&&x.m.uex!=null).map(({f,m})=>({id:f.id,uex:m.uex,model:m.model,name:f.name||''}));
@@ -412,29 +425,63 @@ function renderSum(){
   $k('sum').innerHTML=h;
 }
 // Where to buy: cheapest shop with star system, all shops to expand (price per piece, date of the price report).
-function shopCell(it){
-  if(!it.buy) return T('nicht kaufbar (Loot/Crafting)','not buyable (loot/crafting)');
+function shopCell(it,o){
+  if(!o) return T('nicht kaufbar (Loot/Crafting)','not buyable (loot/crafting)');
   const sys=s=>s.sys?` <span class="kp-sys">${esc(s.sys)}</span>`:'';
   const more=it.shops.length>1?`<details class="kp-more"><summary>${T(`alle ${it.shops.length} Händler`,`all ${it.shops.length} shops`)}</summary><ol>${it.shops.map(s=>
     `<li><b>${fmt(s.price)} aUEC</b> ${esc(s.shop)}${sys(s)}${s.date?` <span class="kp-dt">${T('Stand','as of')} ${new Date(s.date).toLocaleDateString(L()==='en'?'en-GB':'de-DE')}</span>`:''}</li>`).join('')}</ol></details>`:'';
-  return `${esc(it.buy.shop)}${sys(it.buy)}${more}`;
+  return `${esc(o.shop)}${sys(o)}${more}`;
 }
+// Place of an offer as a key (gateways carry the same name in several systems) and as text.
+const placeKey=o=>(o.place||o.shop)+'|'+(o.sys||'');
+// Slots whose part differs from the stock part: what the shopping list is about.
+const swapped=()=>SL.filter(s=>state[s.id]&&state[s.id]!==stock(s));
+// Which offer to buy each changed part from. 'price': the cheapest offer of every part. 'place': as few
+// places as possible, price second – greedily the place that covers most of the remaining parts
+// (ties: lower sum, then name), at each place the cheapest shop there. Returns {pick:Map(slotId->offer|null),sum,places,missing}.
+function shopPlan(ch,mode){const pick=new Map(), xs=ch.map(s=>({id:s.id,n:s.n||1,it:item(state[s.id])}));
+  if(mode!=='place') for(const x of xs) pick.set(x.id,x.it.buy||null);
+  else{let rest=xs.filter(x=>x.it.shops&&x.it.shops.length);
+    while(rest.length){const by={};
+      for(const x of rest){const here={}; for(const o of x.it.shops){const k=placeKey(o); if(!here[k]||o.price<here[k].price) here[k]=o;}
+        for(const k in here){const g=by[k]||(by[k]={k,n:0,sum:0,offers:new Map()}); g.n++; g.sum+=here[k].price*x.n; g.offers.set(x.id,here[k]);}}
+      const best=Object.values(by).sort((a,b)=>b.n-a.n||a.sum-b.sum||a.k.localeCompare(b.k))[0];
+      for(const [id,o] of best.offers) pick.set(id,o); rest=rest.filter(x=>!best.offers.has(x.id));}
+    for(const x of xs) if(!pick.has(x.id)) pick.set(x.id,null);}
+  let sum=0,missing=0; const places=new Set();
+  for(const x of xs){const o=pick.get(x.id); if(o){sum+=o.price*x.n; places.add(placeKey(o));} else missing++;}
+  return {pick,sum,places:places.size,missing};}
 function renderShop(){
-  const ch=SL.filter(s=>state[s.id]&&state[s.id]!==stock(s)); const out=$k('shoplist');
+  const ch=swapped(), out=$k('shoplist'), mode=DB.shop;
+  for(const b of $k('mode').querySelectorAll('button')) b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
+  $k('mode').hidden=!ch.length;
   if(!ch.length){out.innerHTML=`<p class="note" style="margin:4px 0">${T('Noch nichts geändert. Klick auf eine Komponente, um sie zu tauschen.','Nothing changed yet. Click a component to swap it.')}</p>`;return;}
-  let sum=0,missing=0;
-  const rows=ch.map(s=>{const it=item(state[s.id]); const n=s.n||1; if(it.buy) sum+=it.buy.price*n; else missing++;
-    return `<tr><td>${n>1?n+' × ':''}${T(...KP.types[s.type])} S${s.size}${s.sub?` <span class="note">${T('in','in')} ${esc(item(cur(s.parent))?.name||'')}</span>`:''} <span class="note">(${sideTxt(s)})</span></td><td><b>${esc(it.name)}</b></td><td>${shopCell(it)}</td>
-      <td class="p">${it.buy?fmt(it.buy.price*n)+' aUEC':'–'}${it.buy&&n>1?`<br><span class="note">${n} × ${fmt(it.buy.price)}</span>`:''}</td></tr>`}).join('');
-  out.innerHTML=`<div class="tablewrap"><table><thead><tr><th>${T('Steckplatz','Slot')}</th><th>${T('Neu','New')}</th><th>${T('Händler (günstigster zuerst)','Shop (cheapest first)')}</th><th class="num">${T('Preis','Price')}</th></tr></thead><tbody>${rows}
-   <tr class="tot"><td colspan="3">${T('Summe','Total')}${missing?` (${missing} ${T('ohne Kaufpreis','without price')})`:''}</td><td class="p">${fmt(sum)} aUEC</td></tr></tbody></table></div>`;
+  const P=shopPlan(ch,mode), other=shopPlan(ch,mode==='place'?'price':'place');
+  const row=s=>{const it=item(state[s.id]), n=s.n||1, o=P.pick.get(s.id);
+    return `<tr><td>${n>1?n+' × ':''}${T(...KP.types[s.type])} S${s.size}${s.sub?` <span class="note">${T('in','in')} ${esc(item(cur(s.parent))?.name||'')}</span>`:''} <span class="note">(${sideTxt(s)})</span></td><td><b>${esc(it.name)}</b></td><td>${shopCell(it,o)}</td>
+      <td class="p">${o?fmt(o.price*n)+' aUEC':'–'}${o&&n>1?`<br><span class="note">${n} × ${fmt(o.price)}</span>`:''}</td></tr>`};
+  let rows;
+  if(mode==='place'){const grp=new Map(); for(const s of ch){const o=P.pick.get(s.id), k=o?placeKey(o):''; if(!grp.has(k)) grp.set(k,{o,list:[]}); grp.get(k).list.push(s);}
+    const order=[...grp.entries()].sort((a,b)=>(a[0]==='')-(b[0]==='')||b[1].list.length-a[1].list.length||a[0].localeCompare(b[0]));
+    rows=order.map(([k,g])=>{const sub=g.list.reduce((a,s)=>a+(g.o?P.pick.get(s.id).price*(s.n||1):0),0);
+      return `<tr class="kp-grp"><td colspan="3">${g.o?`${esc(g.o.place||g.o.shop)}${g.o.sys?` <span class="kp-sys">${esc(g.o.sys)}</span>`:''} <span class="note">· ${g.list.length} ${T(g.list.length===1?'Teil':'Teile',g.list.length===1?'part':'parts')}</span>`:T('Nicht kaufbar','Not buyable')}</td><td class="p">${g.o?fmt(sub)+' aUEC':'–'}</td></tr>`+g.list.map(row).join('');}).join('');}
+  else rows=ch.map(row).join('');
+  const pl=n=>`${n} ${T(n===1?'Ort':'Orte',n===1?'place':'places')}`, d=P.sum-other.sum;
+  const cmp=mode==='place'
+    ?(P.places<other.places?T(`Der günstigste Preis bräuchte ${pl(other.places)} und wäre ${fmt(Math.max(0,d))} aUEC billiger.`,`The lowest price would need ${pl(other.places)} and cost ${fmt(Math.max(0,d))} aUEC less.`)
+      :T('Der günstigste Preis braucht hier nicht mehr Orte.','The lowest price needs no more places here.'))
+    :(other.places<P.places?T(`„Wenige Orte“ käme mit ${other.places} ${other.places===1?'Ort':'Orten'} aus, für ${fmt(Math.max(0,-d))} aUEC mehr.`,`“Fewest places” would need ${pl(other.places)}, for ${fmt(Math.max(0,-d))} aUEC more.`)
+      :T('„Wenige Orte“ findet hier keine kürzere Tour.','“Fewest places” finds no shorter tour here.'));
+  out.innerHTML=`<div class="tablewrap"><table><thead><tr><th>${T('Steckplatz','Slot')}</th><th>${T('Neu','New')}</th><th>${mode==='place'?T('Händler am Ort','Shop at the place'):T('Händler (günstigster)','Shop (cheapest)')}</th><th class="num">${T('Preis','Price')}</th></tr></thead><tbody>${rows}
+   <tr class="tot"><td colspan="3">${T('Summe','Total')} · ${pl(P.places)}${P.missing?` (${P.missing} ${T('ohne Kaufpreis','without price')})`:''}</td><td class="p">${fmt(P.sum)} aUEC</td></tr></tbody></table></div>
+   <p class="note kp-shopsum" role="status">${cmp}</p>`;
 }
 
 /* ---------- reminders (only inside the cockpit, where window.SCData exists) ---------- */
 // The shopping list as reminder entries: one per part, counts added up, with the cheapest shop.
-function merkList(){const by={};
-  for(const s of SL){const u=state[s.id]; if(!u||u===stock(s)) continue; const it=item(u); if(!it) continue;
-    const e=by[u]||(by[u]={key:u,text:it.name,n:0,...(it.buy?{price:it.buy.price,shop:it.buy.shop+(it.buy.sys?` (${it.buy.sys})`:'')}:{})}); e.n+=s.n||1;}
+function merkList(){const by={}, ch=swapped(), P=shopPlan(ch,DB.shop);
+  for(const s of ch){const u=state[s.id], it=item(u); if(!it) continue; const o=P.pick.get(s.id);
+    const e=by[u]||(by[u]={key:u,text:it.name,n:0,...(o?{price:o.price,shop:o.shop+(o.sys?` (${o.sys})`:'')}:{})}); e.n+=s.n||1;}
   return Object.values(by);}
 // Ships that keep reminders: open reminders follow the shopping list, ticked ones stay (SCData.syncAuto).
 function syncMerk(){if(window.SCData&&inst&&inst!==LINK&&DB.merk[inst]) SCData.syncAuto('kp',inst,merkList());}
@@ -481,11 +528,14 @@ function openDrawer(id){
 }
 function fillList(){
   const s=open; const k=MAIN[s.type]; const only=$k('onlybuy').checked; const base=item(stock(s));
-  const list=(KP.catalog[s.cat||`${s.type}_${s.size}`]||[]).filter(it=>!only||it.buy||it.uuid===cur(s));
+  const all=KP.catalog[s.cat||`${s.type}_${s.size}`]||[];
+  // Nothing buyable fits (e.g. the Hornet's nose turret, which no shop sells): show every fitting part instead of a dead end.
+  let list=all.filter(it=>!only||it.buy||it.uuid===cur(s)); const forced=only&&all.length>0&&!list.some(it=>it.uuid!==cur(s));
+  if(forced) list=all.slice();
   list.sort((a,b)=>((typeof b.stats[k]==='number'?b.stats[k]:0)-(typeof a.stats[k]==='number'?a.stats[k]:0))||((a.buy?.price||9e9)-(b.buy?.price||9e9)));
   const dl=$k('dlist');
   if(!list.length){dl.innerHTML=`<p class="kp-empty">${T('Keine ingame kaufbare Alternative bekannt. Haken oben entfernen, um auch nicht kaufbare Teile zu sehen (Loot, Crafting, Werksteile anderer Varianten).','No buyable alternative known. Untick the box above to also see parts you cannot buy (loot, crafting, stock parts of other variants).')}</p>`;return;}
-  dl.innerHTML=list.map(it=>{
+  dl.innerHTML=(forced?`<p class="kp-forced">${T('Für diesen Steckplatz ist kein kaufbares Teil bekannt. Gezeigt werden deshalb alle passenden Teile (Loot, Crafting, Werksteile anderer Varianten).','No buyable part is known for this slot. All fitting parts are shown instead (loot, crafting, stock parts of other variants).')}</p>`:'')+list.map(it=>{
     const sts=Object.entries(it.stats).filter(([kk,v])=>v!=null&&STAT[kk]).map(([kk,v])=>{const b=base?.stats?.[kk]; const d=(typeof v==='number'&&typeof b==='number')?Math.round((v-b)*10)/10:0;
       const good=LOWER.has(kk)?d<0:d>0; return `${T(STAT[kk][0],STAT[kk][1])} ${fmtK(kk,v)}${STAT[kk][2]}${d?` <span class="kp-d ${good?'up':'down'}">${d>0?'+':''}${fmt(d)}</span>`:''}`}).join(' · ');
     const tags=(it.uuid===stock(s)?`<span class="kp-tag">${T('Standard','Stock')}</span>`:'')+(it.uuid===cur(s)?`<span class="kp-tag on">${T('verbaut','fitted')}</span>`:'');
@@ -515,6 +565,8 @@ $k('onlybuy').addEventListener('change',fillList);
 $k('dreset').addEventListener('click',()=>{delete state[open.id]; if(!open.sub) dropSubs(open.id); changed();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open) closeDrawer();});
 $k('resetall').addEventListener('click',()=>{for(const k in state) delete state[k]; changed();});
+$k('mode').addEventListener('click',e=>{const b=e.target.closest('button[data-mode]'); if(!b||DB.shop===b.dataset.mode) return;
+  DB.shop=b.dataset.mode; persist(); renderShop(); syncMerk();});
 $k('merk').addEventListener('click',e=>{if(!window.SCData||!inst||inst===LINK) return;
   if(e.target.closest('#kp-merkon')){DB.merk[inst]=true; persist(); syncMerk(); renderMerk();}
   // Stopping drops the open reminders of this ship; ticked ones stay in the list.
@@ -631,6 +683,8 @@ else{if(DB.probe&&model(DB.probe.slug)){linkSlug=DB.probe.slug; STATE[LINK]={...
   if(linkSlug&&(DB.last===LINK||!f)){inst=LINK; ship=model(linkSlug); state=STATE[LINK];}
   else if(f){inst=f.id; ship=model(slugOf(f)); state=loadFit(f.id);} else state={};}
 setup(); drawShip(); render();
+// Hook for a host page (the cockpit's jump from a ship's name): open a fleet ship; false if it has no top view here.
+window.KPX={open(id){const f=fleetEntry(id); if(!f||!slugOf(f)) return false; if(id!==inst) show(id); return true;}};
 // A loadout link opens the tab (S and the page's render() are the ship list's; the cockpit has neither).
 if(fromLink&&typeof S!=='undefined'&&typeof window.render==='function'){S.view='kp'; window.render();}
 })();

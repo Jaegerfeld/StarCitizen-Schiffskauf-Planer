@@ -309,14 +309,17 @@ def shops(it: dict) -> list[dict]:
         it: Item record of the Wiki API (with ``uex_prices``).
 
     Returns:
-        Offers with price, shop, star system and date of the last price report.
+        Offers with price, shop, place of the shop (station, city or outpost), star system
+        and date of the last price report.
     """
     out: dict = {}
     for p in (it.get("uex_prices") or {}).get("purchase") or []:
         price, name = p.get("price_buy") or 0, p.get("terminal_name")
         if price > 0 and name and (name not in out or price < out[name]["price"]):
+            loc = p.get("starmap_location") or {}
             out[name] = {"price": price, "shop": name,
-                         "sys": (p.get("starmap_location") or {}).get("star_system_name"),
+                         "place": loc.get("name") or name.rsplit(" - ", 1)[-1],
+                         "sys": loc.get("star_system_name"),
                          "date": (p.get("date_updated") or "")[:10]}
     return sorted(out.values(), key=lambda s: (s["price"], s["shop"]))
 

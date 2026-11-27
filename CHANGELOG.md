@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.0.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.15.0] – 2026-11-27
+
+### Hinzugefügt
+- **Einkaufsliste: „Günstigster Preis“ oder „Wenige Orte“.** Über der Einkaufsliste steht ein Umschalter. „Günstigster Preis“ nennt wie bisher für jedes Teil den billigsten Händler. „Wenige Orte“ legt die Teile auf möglichst wenige Standorte (Station, Stadt, Außenposten), der Preis ist zweitrangig; die Liste ist dann nach Ort gruppiert, mit Zwischensumme je Ort. Beide Ansichten nennen die Zahl der Orte und sagen, was die andere Wahl an Orten und aUEC ausmachen würde. Die Wahl bleibt gespeichert, und die Merker im Cockpit folgen ihr.
+- Jedes Händlerangebot trägt jetzt den Standort des Händlers; mehrere Läden an einem Standort zählen als ein Ort.
+
+### Behoben
+- **Hornet Mk II: Der Nasenturm ließ sich nicht zuweisen.** Der Steckplatz kennt genau ein passendes Teil, den „Anvil Hornet Mk II S3 Nose Turret“, und den führt kein Händler. Mit dem Haken „Nur ingame kaufbare zeigen“ (Standard) blieb die Auswahl deshalb leer. Gibt es für einen Steckplatz kein kaufbares Teil, zeigt die Auswahl jetzt alle passenden Teile und sagt das dazu. Nach der Wahl des Turms erscheint darunter die Karte für seine zwei S3-Waffen.
+
+### Hinweis
+- „Wenige Orte“ sucht die Standorte schrittweise aus (immer der Ort, der die meisten noch offenen Teile abdeckt). Das ist meist, aber nicht in jedem Fall die kleinstmögliche Zahl an Orten.
+
 ## [1.14.1] – 2026-11-26
 
 ### Geändert
